@@ -21,7 +21,7 @@ end
 if #missing > 0 then
     vim.cmd.colorscheme("habamax")
     vim.schedule(function()
-        vim.notify("Plugins are not installed yet. Run: bash ~/Rice/dotfiles/scripts/finish-setup.sh", vim.log.levels.WARN)
+        vim.notify("Plugins are not installed yet. Run: nvim --headless -u NONE -l ~/.config/nvim/scripts/bootstrap.lua", vim.log.levels.WARN)
     end)
     return
 end
