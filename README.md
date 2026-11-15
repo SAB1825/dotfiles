@@ -5,6 +5,7 @@ Selected configs are active through symlinks:
 | Config | Active location |
 | --- | --- |
 | Kitty | `~/.config/kitty` |
+| Niri | `~/.config/niri/config.kdl` |
 | Neovim | `~/.config/nvim` |
 | tmux | `~/.config/tmux` |
 | Code - OSS | `~/.config/Code - OSS/User/settings.json` |
@@ -14,28 +15,28 @@ Selected configs are active through symlinks:
 Edits in this repository apply to the linked configs. Phoenix's source lives
 in `config/quickshell`, linked at `~/.config/quickshell/main`. The old
 `~/Rice/quickshell` path forwards to this directory for existing desktop links.
-Niri's configuration is saved in `config/niri/config.kdl`; the active
-`~/.config/niri/config.kdl` is an identical copy, not a symlink. Zsh and Fastfetch
+Niri's active configuration links to `config/niri/config.kdl`. Zsh and Fastfetch
 are retained as source files and are not activated by this setup. Fish has been removed.
 
-## Finish plugin downloads
+## Plugin downloads
 
 The selected applications are installed. Run this from a normal terminal with
-internet access to install the pinned tmux/Neovim plugins and the four Code themes,
-icons and Vim extensions used by the settings:
+internet access to install the pinned Neovim plugins:
 
 ```sh
-bash ~/Rice/dotfiles/scripts/finish-setup.sh
+nvim --headless -u NONE -l ~/Rice/dotfiles/config/nvim/scripts/bootstrap.lua
 ```
 
-The script reports failures and can be rerun. It does not install system packages,
-push commits or start an extra desktop shell. It reloads Phoenix at the end.
-Plugin/extension downloads cannot run in the restricted Codex environment.
+Initialize tmux plugins with `git submodule update --init` from this repository.
+Code OSS uses the `zhuangtongfa.material-theme`, `PKief.material-icon-theme`,
+`PKief.material-product-icons`, and `vscodevim.vim` extensions, which can be
+installed through its Extensions view.
 
 ## Kitty and wallpaper
 
 - **Super+T** opens Kitty. Phoenix also uses Kitty for terminal applications.
-- JetBrains Mono Nerd Font Mono, 12 pt, 92% opacity, 20 px padding, hidden tabs.
+- JetBrains Mono Nerd Font Mono, 12 pt, 80% opacity, 20 px padding, hidden tabs.
+- Niri gives Kitty background blur. All application windows have 16 px rounded corners, with borders and focus rings disabled.
 - Kitty starts the installed Bash shell and exports `EDITOR=nvim` / `VISUAL=nvim`.
 - Colours follow Phoenix's wallpaper via `~/.local/state/ryu/kitty.conf`. The
   original `colors.conf` remains a fallback. Wallpaper changes regenerate the
