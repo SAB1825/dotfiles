@@ -26,133 +26,109 @@ Item {
     readonly property real notchPadding: 4
     readonly property real notchRadius: 18
     readonly property real notchRadiusBottom: 30
-    readonly property real itemGap: 8
-    readonly property real tightGap: 0
-    readonly property real slideShift: 6
+    readonly property real itemGap: 4
     readonly property real popupGap: 10
-    readonly property real closedGap: 4
-    readonly property real dateShift: notchRadius + notchPadding + 12
 
     readonly property real topLine: floating ? 0 : radius
     readonly property real edgePad: floating ? Math.max(itemGap + notchPadding, radius * 0.5) : itemGap + notchPadding
     readonly property real rightPad: edgePad
-    readonly property real batteryPad: floating ? edgePad : radius + notchPadding + notchRadius - 10
-    readonly property real leftTrim: Math.max(0, batteryPad - closedGap)
-    readonly property real sessionLift: floating ? Math.max(0, radius + notchPadding + notchRadius - batteryPad) : 0
 
     readonly property real cc: floating ? thickness / 2 : (lowFlat ? thickness / 2 + radius / 2 : thickness / 2 - radius / 2)
     readonly property real attach: floating ? (lowFlat ? 0 : thickness) : (lowFlat ? radius : thickness - radius)
 
-    readonly property var permanent: floating ? [] : [battery, recordingIndicator]
-    readonly property var popupLoaders: [githubLoader, controlsLoader, powerLoader, calendarLoader, previewLoader, nightLoader, mediaLoader, startLoader, wifiLoader]
+    readonly property var permanent: floating ? [] : [sessionButton, recordingIndicator]
+    readonly property var popupLoaders: [githubLoader, controlsLoader, calendarLoader, previewLoader, mediaLoader, startLoader, wifiLoader, nightLoader, performanceLoader]
     readonly property var activeLoader: popupLoaders.find(l => l.owner === target) ?? null
     readonly property var activeContent: activeLoader ? activeLoader.item : null
     readonly property bool popupShown: notchOpen && activeLoader !== null
     readonly property bool pinned: popupShown && target === wifiButton && (activeContent?.pinned ?? false)
 
     readonly property Item hoveredItem: {
-        if (powerSlot.hovered || powerProfile.hovered)
-            return powerProfile;
-        if (github.hovered)
+        if (github.visible && github.hovered)
             return github;
-        if (controls.hovered)
+        if (controls.visible && controls.hovered)
             return controls;
-        if (wifiButton.hovered)
+        if (wifiButton.visible && wifiButton.hovered)
             return wifiButton;
-        if (dateSlot.hovered)
-            return datetime;
-        if (openedApp.hoveredCell)
-            return appSlot;
-        if (sessionButton.hovered || sessionSlot.hovered)
-            return sessionButton;
-        if (nightMode.hovered || nightSlot.hovered)
+        if (nightMode.visible && nightMode.hovered)
             return nightMode;
-        if (startMenu.hovered || startSlot.hovered)
+        if (powerProfile.visible && powerProfile.hovered)
+            return powerProfile;
+        if (dateSlot.visible && dateSlot.hovered)
+            return datetime;
+        if (openedApp.visible && openedApp.hoveredCell)
+            return appSlot;
+        if (sessionButton.visible && (sessionButton.hovered || sessionSlot.hovered))
+            return sessionButton;
+        if (startMenu.visible && (startMenu.hovered || startSlot.hovered))
             return startMenu;
-        if (mediaButton.hovered || mediaSlot.hovered)
+        if (mediaButton.visible && (mediaButton.hovered || mediaSlot.hovered))
             return mediaButton;
         if (host.hovered)
             return target;
         return null;
     }
 
-    readonly property int groupIndex: {
-        if (!notchOpen)
-            return -1;
-        if (target === startMenu)
-            return 1;
-        if (target === nightMode)
-            return 2;
-        if (target === mediaButton)
-            return 3;
-        return -1;
+    readonly property var moduleItems: ({launcher: startMenu, workspaces: workspace, title: activeWindow, date: datetime,
+        github: github, media: mediaButton, nightlight: nightMode, performance: powerProfile, wifi: wifiButton, controls: controls, battery: battery, power: sessionButton})
+    function moduleLength(key) {
+        if (!BarConfig.moduleEnabled(key)) return 0;
+        return lenOf(moduleItems[key]);
     }
-
-    property real dateOffset: (notchOpen && target === datetime) ? dateShift : 0
-    property real recOffset: (notchOpen && target === powerProfile) ? dateShift : 0
-    property real pairOffset: (notchOpen && (target === powerProfile || target === github)) ? slideShift : 0
-    property real wifiOffset: (notchOpen && target === wifiButton) ? slideShift : 0
-    property real startOffset: groupShift(1)
-    property real nightOffset: groupShift(2)
-    property real mediaOffset: groupShift(3)
-    readonly property bool sessionWanted: notchOpen && target === sessionButton
-    property bool sessionLifted: false
-    property real leftShift: sessionLifted ? -sessionLift : (sessionWanted ? 0 : leftTrim)
-
-    onSessionWantedChanged: {
-        if (sessionWanted) {
-            liftTimer.stop();
-            sessionLifted = true;
-        } else if (notchOpen || !floating) {
-            liftTimer.stop();
-            sessionLifted = false;
-        } else {
-            liftTimer.restart();
+    function modulePosition(key, side) {
+        const order = side === "left" ? BarConfig.leftOrder : BarConfig.rightOrder;
+        const active = order.filter(k => BarConfig.moduleEnabled(k));
+        let position = edgePad;
+        if (side === "right") {
+            position = length - rightPad;
+            for (const k of active) position -= moduleLength(k) + itemGap;
+            if (active.length) position += itemGap;
         }
+        for (const k of active) {
+            if (k === key) return position;
+            position += moduleLength(k) + itemGap;
+        }
+        return position;
     }
+    readonly property real mSessionSlot: modulePosition("power", "right")
+    readonly property real mSessionClosed: mSessionSlot
+    readonly property real mWorkspace: modulePosition("workspaces", "left")
+    readonly property real mStartSlot: modulePosition("launcher", "left")
+    readonly property real mStart: mStartSlot
+    readonly property real mMediaSlot: modulePosition("media", "right")
+    readonly property real mMedia: mMediaSlot
+    readonly property real mApps: (length - lenOf(openedApp)) / 2
+    readonly property real mBattery: modulePosition("battery", "right")
+    readonly property real mDateSlot: modulePosition("date", "right")
+    readonly property real mDate: mDateSlot
+    readonly property real mWifiSlot: modulePosition("wifi", "right")
+    readonly property real mWifi: mWifiSlot
+    readonly property real mControlsSlot: modulePosition("controls", "right")
+    readonly property real mControls: mControlsSlot
+    readonly property real mGitHubSlot: modulePosition("github", "right")
+    readonly property real mGitHub: mGitHubSlot
+    readonly property real mRec: modulePosition(BarConfig.rightOrder.find(k => BarConfig.moduleEnabled(k)), "right") - itemGap - lenOf(recordingIndicator)
 
-    readonly property real mSessionClosed: batteryPad - leftTrim
-    readonly property real mSessionSlot: batteryPad - leftShift
-    readonly property real mWorkspace: mSessionSlot + lenOf(sessionButton) + itemGap
-    readonly property real mStartSlot: mWorkspace + lenOf(workspace) + itemGap
-    readonly property real mNightSlot: mStartSlot + lenOf(startMenu) + tightGap
-    readonly property real mMediaSlot: mNightSlot + lenOf(nightMode) + tightGap
-    readonly property real mStart: mStartSlot + startOffset
-    readonly property real mNight: mNightSlot + nightOffset
-    readonly property real mMedia: mMediaSlot + mediaOffset
-    readonly property real mApps: mMediaSlot + lenOf(mediaButton) + itemGap
-
-    readonly property real mBattery: length - rightPad - lenOf(battery)
-    readonly property real mDateSlot: mBattery - itemGap - lenOf(datetime)
-    readonly property real mWifiSlot: mDateSlot - itemGap - lenOf(wifiButton)
-    readonly property real mControlsSlot: mWifiSlot - itemGap - lenOf(controls)
-    readonly property real mGitHubSlot: mControlsSlot - itemGap - lenOf(github)
-    readonly property real mPowerBase: mGitHubSlot - tightGap - lenOf(powerProfile)
-    readonly property real mDate: mDateSlot - dateOffset
-    readonly property real mWifi: mWifiSlot - dateOffset
-    readonly property real mControls: mControlsSlot - dateOffset - wifiOffset
-    readonly property real mGitHub: mGitHubSlot - dateOffset - wifiOffset
-    readonly property real mPowerSlot: mPowerBase - dateOffset
-    readonly property real mPower: mPowerSlot - pairOffset - wifiOffset
-    readonly property real mRec: mPower - 16 - recOffset - lenOf(recordingIndicator)
+    property Connections moduleSettings: Connections {
+        target: BarConfig
+        function onHiddenModulesChanged() { root.notchOpen = false; }
+        function onLeftOrderChanged() { root.notchOpen = false; }
+        function onRightOrderChanged() { root.notchOpen = false; }
+    }
 
     readonly property real targetM: {
         if (target === datetime)
-            return mDateSlot - dateShift;
+            return mDateSlot;
         if (target === wifiButton)
             return mWifiSlot;
         if (target === controls)
             return mControlsSlot;
         if (target === github)
             return mGitHubSlot;
-        if (target === powerProfile)
-            return mPowerBase - slideShift;
         if (target === sessionButton)
             return mSessionSlot;
         if (target === startMenu)
             return mStartSlot;
-        if (target === nightMode)
-            return mNightSlot;
         if (target === mediaButton)
             return mMediaSlot;
         return along(target);
@@ -176,12 +152,6 @@ Item {
     readonly property real depth: permanentDepth * notchProgress
 
     readonly property string outlinePath: buildPath()
-
-    function groupShift(i) {
-        if (groupIndex < 0 || groupIndex === i)
-            return 0;
-        return i < groupIndex ? -slideShift : slideShift;
-    }
 
     function lenOf(item) {
         return horizontal ? item.width : item.height;
@@ -221,6 +191,7 @@ Item {
 
         const cuts = [];
         for (const item of permanent) {
+            if (!item.visible) continue;
             const d = permanentDepth * (item.cutProgress ?? 1);
             if (d < 0.5)
                 continue;
@@ -231,7 +202,7 @@ Item {
                 d: d
             });
         }
-        if (depth > 0.5)
+        if (depth > 0.5 && permanent.indexOf(target) < 0)
             cuts.push({
                 l: l2,
                 r: l3,
@@ -341,62 +312,6 @@ Item {
         notchOpen = true;
     }
 
-    Behavior on dateOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on recOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on pairOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on wifiOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on startOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on nightOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on mediaOffset {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on leftShift {
-        NumberAnimation {
-            duration: 180
-            easing.type: Easing.OutCubic
-        }
-    }
-
     Behavior on notchProgress {
         SpringAnimation {
             spring: 4
@@ -448,12 +363,6 @@ Item {
         }
     }
 
-    Timer {
-        id: liftTimer
-        interval: 100
-        onTriggered: root.sessionLifted = false
-    }
-
     Item {
         id: hit
         anchors.fill: parent
@@ -461,6 +370,20 @@ Item {
         anchors.bottomMargin: root.edge === "top" ? root.topLine : 0
         anchors.leftMargin: root.edge === "right" ? root.topLine : 0
         anchors.rightMargin: root.edge === "left" ? root.topLine : 0
+    }
+
+    Item {
+        id: sessionSlot
+        visible: BarConfig.moduleEnabled("power")
+        readonly property bool hovered: sessionHover.hovered
+        width: root.horizontal ? root.lenOf(sessionButton) : 40
+        height: root.horizontal ? 40 : root.lenOf(sessionButton)
+        x: root.px(root.mSessionClosed, sessionSlot)
+        y: root.py(root.mSessionClosed, sessionSlot)
+
+        HoverHandler {
+            id: sessionHover
+        }
     }
 
     Shape {
@@ -480,20 +403,8 @@ Item {
     }
 
     Item {
-        id: sessionSlot
-        readonly property bool hovered: sessionHover.hovered
-        width: root.horizontal ? root.lenOf(sessionButton) + root.leftTrim : 40
-        height: root.horizontal ? 40 : root.lenOf(sessionButton) + root.leftTrim
-        x: root.px(root.mSessionClosed, sessionSlot)
-        y: root.py(root.mSessionClosed, sessionSlot)
-
-        HoverHandler {
-            id: sessionHover
-        }
-    }
-
-    Item {
         id: startSlot
+        visible: BarConfig.moduleEnabled("launcher")
         readonly property bool hovered: startHover.hovered
         width: 40
         height: 40
@@ -506,20 +417,8 @@ Item {
     }
 
     Item {
-        id: nightSlot
-        readonly property bool hovered: nightHover.hovered
-        width: 40
-        height: 40
-        x: root.px(root.mNightSlot, nightSlot)
-        y: root.py(root.mNightSlot, nightSlot)
-
-        HoverHandler {
-            id: nightHover
-        }
-    }
-
-    Item {
         id: mediaSlot
+        visible: BarConfig.moduleEnabled("media")
         readonly property bool hovered: mediaHover.hovered
         width: root.horizontal ? mediaButton.width : 40
         height: root.horizontal ? 40 : mediaButton.height
@@ -533,6 +432,7 @@ Item {
 
     Item {
         id: dateSlot
+        visible: BarConfig.moduleEnabled("date")
         readonly property bool hovered: dateHover.hovered
         width: root.horizontal ? datetime.width : 40
         height: root.horizontal ? 40 : datetime.height
@@ -541,19 +441,6 @@ Item {
 
         HoverHandler {
             id: dateHover
-        }
-    }
-
-    Item {
-        id: powerSlot
-        readonly property bool hovered: powerHover.hovered
-        width: 40
-        height: 40
-        x: root.px(root.mPowerSlot, powerSlot)
-        y: root.py(root.mPowerSlot, powerSlot)
-
-        HoverHandler {
-            id: powerHover
         }
     }
 
@@ -567,6 +454,7 @@ Item {
 
     SessionButton {
         id: sessionButton
+        visible: BarConfig.moduleEnabled("power")
         vertical: !root.horizontal
         open: root.notchOpen && root.target === sessionButton
         x: root.px(root.mSessionSlot, sessionButton)
@@ -575,27 +463,35 @@ Item {
 
     Workspace {
         id: workspace
+        visible: BarConfig.moduleEnabled("workspaces")
         screen: root.screen
         vertical: !root.horizontal
         x: root.px(root.mWorkspace, workspace)
         y: root.py(root.mWorkspace, workspace)
     }
 
+    ActiveWindow {
+        id: activeWindow
+        visible: BarConfig.moduleEnabled("title")
+        vertical: !root.horizontal
+        availableLength: Math.max(0, root.mApps - root.edgePad - root.itemGap
+            - BarConfig.leftOrder.filter(key => key !== "title" && BarConfig.moduleEnabled(key))
+                .reduce((sum, key) => sum + root.moduleLength(key) + root.itemGap, 0))
+        x: root.px(root.modulePosition("title", "left"), activeWindow)
+        y: root.py(root.modulePosition("title", "left"), activeWindow)
+    }
+
     StartButton {
         id: startMenu
+        visible: BarConfig.moduleEnabled("launcher")
         open: root.notchOpen && root.target === startMenu
         x: root.px(root.mStart, startMenu)
         y: root.py(root.mStart, startMenu)
     }
 
-    NightModeButton {
-        id: nightMode
-        x: root.px(root.mNight, nightMode)
-        y: root.py(root.mNight, nightMode)
-    }
-
     MediaButton {
         id: mediaButton
+        visible: BarConfig.moduleEnabled("media")
         vertical: !root.horizontal
         open: root.notchOpen && root.target === mediaButton
         x: root.px(root.mMedia, mediaButton)
@@ -606,13 +502,14 @@ Item {
         id: openedApp
         vertical: !root.horizontal
         notched: root.notchOpen && root.target === appSlot
-        pushAmount: root.notchPadding + 2
+        pushAmount: root.notchPadding
         x: root.px(root.mApps, openedApp)
         y: root.py(root.mApps, openedApp)
     }
 
     Battery {
         id: battery
+        visible: BarConfig.moduleEnabled("battery")
         vertical: !root.horizontal
         x: root.px(root.mBattery, battery)
         y: root.py(root.mBattery, battery)
@@ -620,6 +517,7 @@ Item {
 
     DateTime {
         id: datetime
+        visible: BarConfig.moduleEnabled("date")
         vertical: !root.horizontal
         x: root.px(root.mDate, datetime)
         y: root.py(root.mDate, datetime)
@@ -627,6 +525,7 @@ Item {
 
     WifiButton {
         id: wifiButton
+        visible: BarConfig.moduleEnabled("wifi")
         open: root.notchOpen && root.target === wifiButton
         x: root.px(root.mWifi, wifiButton)
         y: root.py(root.mWifi, wifiButton)
@@ -634,6 +533,7 @@ Item {
 
     Controls {
         id: controls
+        visible: BarConfig.moduleEnabled("controls")
         vertical: !root.horizontal
         x: root.px(root.mControls, controls)
         y: root.py(root.mControls, controls)
@@ -648,16 +548,25 @@ Item {
 
     GitHubButton {
         id: github
+        visible: BarConfig.moduleEnabled("github")
         vertical: !root.horizontal
         open: root.notchOpen && root.target === github
         x: root.px(root.mGitHub, github)
         y: root.py(root.mGitHub, github)
     }
 
+    NightModeButton {
+        id: nightMode
+        visible: BarConfig.moduleEnabled("nightlight")
+        x: root.px(root.modulePosition("nightlight", "right"), nightMode)
+        y: root.py(root.modulePosition("nightlight", "right"), nightMode)
+    }
+
     PowerProfileButton {
         id: powerProfile
-        x: root.px(root.mPower, powerProfile)
-        y: root.py(root.mPower, powerProfile)
+        visible: BarConfig.moduleEnabled("performance")
+        x: root.px(root.modulePosition("performance", "right"), powerProfile)
+        y: root.py(root.modulePosition("performance", "right"), powerProfile)
     }
 
     PopupHost {
@@ -670,13 +579,19 @@ Item {
         attach: root.attach
 
         Loader {
-            id: githubLoader
-            readonly property Item owner: github
+            id: nightLoader
+            readonly property Item owner: nightMode
             anchors.centerIn: parent
             active: root.notchOpen && root.target === owner
-            sourceComponent: GitHubPopup {
-                active: true
-            }
+            sourceComponent: NightModePopup { active: true }
+        }
+
+        Loader {
+            id: performanceLoader
+            readonly property Item owner: powerProfile
+            anchors.centerIn: parent
+            active: root.notchOpen && root.target === owner
+            sourceComponent: PowerProfilePopup { active: true }
         }
 
         Loader {
@@ -691,21 +606,21 @@ Item {
         }
 
         Loader {
-            id: wifiLoader
-            readonly property Item owner: wifiButton
+            id: githubLoader
+            readonly property Item owner: github
             anchors.centerIn: parent
             active: root.notchOpen && root.target === owner
-            sourceComponent: WifiPopup {
+            sourceComponent: GitHubPopup {
                 active: true
             }
         }
 
         Loader {
-            id: powerLoader
-            readonly property Item owner: powerProfile
+            id: wifiLoader
+            readonly property Item owner: wifiButton
             anchors.centerIn: parent
             active: root.notchOpen && root.target === owner
-            sourceComponent: PowerProfilePopup {
+            sourceComponent: WifiPopup {
                 active: true
             }
         }
@@ -729,16 +644,6 @@ Item {
                 active: true
                 group: openedApp.hoverGroup
                 maxWidth: root.horizontal ? root.width - 2 * host.edgeMargin - host.pad * 2 : (root.parent ? root.parent.width : 1920) - root.thickness - (root.floating ? BarConfig.dockMargin : 0) - root.popupGap - 2 * host.edgeMargin - host.pad * 2
-            }
-        }
-
-        Loader {
-            id: nightLoader
-            readonly property Item owner: nightMode
-            anchors.centerIn: parent
-            active: root.notchOpen && root.target === owner
-            sourceComponent: NightModePopup {
-                active: true
             }
         }
 

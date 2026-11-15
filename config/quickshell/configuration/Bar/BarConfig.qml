@@ -41,6 +41,35 @@ QtObject {
     readonly property string opposite: edge === "top" ? "bottom" : edge === "bottom" ? "top" : edge === "left" ? "right" : "left"
     readonly property int dockMargin: marginOf(edge)
 
+    readonly property var leftModules: ["launcher", "workspaces", "title"]
+    readonly property var rightModules: ["github", "media", "nightlight", "performance", "wifi", "controls", "date", "battery", "power"]
+    readonly property var moduleLabels: ({launcher: "App launcher", workspaces: "Workspaces", title: "Active window title", date: "Date and calendar", github: "GitHub", media: "Media", wifi: "Wi-Fi", controls: "Audio and brightness", nightlight: "Night light", performance: "Performance mode", battery: "Battery", power: "Power menu"})
+    property var hiddenModules: StateService.get("barHiddenModules", [])
+    property var leftOrder: normalizeOrder(StateService.get("barLeftOrder", leftModules), leftModules)
+    property var rightOrder: normalizeOrder(StateService.get("barRightOrder", rightModules), rightModules)
+
+    function normalizeOrder(order, defaults) {
+        const saved = Array.isArray(order) ? order : [];
+        return saved.filter((key, index) => defaults.indexOf(key) >= 0 && saved.indexOf(key) === index)
+            .concat(defaults.filter(key => saved.indexOf(key) < 0));
+    }
+    function moduleEnabled(key) { return hiddenModules.indexOf(key) < 0; }
+    function setModuleEnabled(key, enabled) {
+        hiddenModules = enabled ? hiddenModules.filter(x => x !== key) : hiddenModules.concat([key]).filter((x, i, a) => a.indexOf(x) === i);
+        StateService.set("barHiddenModules", hiddenModules);
+    }
+    function moveModule(side, key, delta) {
+        const order = (side === "left" ? leftOrder : rightOrder).slice();
+        const index = order.indexOf(key);
+        const next = index + delta;
+        if (index < 0 || next < 0 || next >= order.length) return;
+        order.splice(index, 1);
+        order.splice(next, 0, key);
+        if (side === "left") leftOrder = order;
+        else rightOrder = order;
+        StateService.set(side === "left" ? "barLeftOrder" : "barRightOrder", order);
+    }
+
     function marginOf(side) {
         switch (side) {
         case "left":

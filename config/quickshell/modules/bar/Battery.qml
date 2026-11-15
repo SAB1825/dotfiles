@@ -14,10 +14,11 @@ Rectangle {
     readonly property bool critical: !charging && level <= 0.5
     readonly property real barWidth: vertical ? 28 : 55
     readonly property real barHeight: vertical ? 55 : 28
-    color: Theme.surfaceContainer
+    color: Theme.background
     width: vertical ? 40 : barWidth + 16
     height: vertical ? barHeight + 16 : 40
     radius: Math.min(width, height) / 2
+
 
     Behavior on shown {
         NumberAnimation {

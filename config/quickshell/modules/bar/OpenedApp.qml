@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 import QtQuick
+import Ryu.Io
 import Ryu.Desktop
 import px.services.niri
 import Ryu.Ui
@@ -22,31 +23,26 @@ Grid {
         lastM = vertical ? hoveredCell.y : hoveredCell.x;
         lastAppId = hoveredCell.modelData.appId;
     }
-    readonly property var groups: {
-        const apps = DesktopEntries.applications.values;
-        const list = NiriService.windows;
-        const order = [];
-        const map = {};
-        for (const t of list) {
-            if (!t.app_id)
-                continue;
-            const id = t.app_id;
-            if (!map[id]) {
-                const entry = apps.length > 0 ? DesktopEntries.heuristicLookup(id) : null;
-                const name = entry?.icon || id.toLowerCase();
-                map[id] = {
-                    appId: id,
-                    icon: DesktopIcons.path(name),
-                    toplevels: []
-                };
-                order.push(map[id]);
-            }
-            map[id].toplevels.push({id: t.id, title: t.title, activated: t.is_focused});
-        }
-        return order;
-    }
+    // Stable pins stay in place whether or not their windows are open.
+    readonly property var pins: [
+        {appId: "code-oss", name: "Code", icon: "com.visualstudio.code.oss", command: ["code-oss"], matches: ["code-oss", "code", "com.visualstudio.code.oss"]},
+        {appId: "helium", name: "Helium", icon: "helium-browser", command: ["helium-browser"], matches: ["helium", "helium-browser"]},
+        {appId: "kitty", name: "Kitty", icon: "kitty", command: ["kitty"], matches: ["kitty"]}
+    ]
+    readonly property var groups: pins.map(pin => ({
+        appId: pin.appId,
+        name: pin.name,
+        command: pin.command,
+        icon: pin.appId === "helium" ? "file:///opt/helium-browser-bin/product_logo_256.png" : DesktopIcons.path(pin.icon, "application-x-executable"),
+        toplevels: NiriService.windows.filter(t => pin.matches.indexOf((t.app_id || "").toLowerCase()) >= 0)
+            .map(t => ({id: t.id, title: t.title, activated: t.is_focused}))
+    }))
     function activateGroup(group) {
         const items = group.toplevels;
+        if (!items.length) {
+            Exec.detached(group.command);
+            return;
+        }
         const current = items.findIndex(t => t.activated);
         NiriService.focusWindow(items[(current + 1) % items.length].id);
     }
@@ -66,47 +62,40 @@ Grid {
                     return 0;
                 return index < root.lastIndex ? -root.pushAmount : root.pushAmount;
             }
-            width: 40
-            height: 40
+            width: root.vertical ? 40 : 36
+            height: root.vertical ? 36 : 40
             radius: height / 2
-            color: Theme.background
+            color: hover.hovered ? Theme.surfaceContainerHighest : Theme.background
+            scale: mouse.pressed ? 0.92 : hover.hovered ? 1.08 : 1
+            Behavior on scale {
+                NumberAnimation { duration: 160; easing.type: Easing.OutCubic }
+            }
+            Behavior on color { ColorAnimation { duration: 150 } }
             transform: Translate {
                 x: root.vertical ? 0 : cell.push
                 y: root.vertical ? cell.push : 0
+                Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+                Behavior on y { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
             }
             IconImage {
                 anchors.centerIn: parent
                 source: cell.modelData.icon
                 implicitSize: 22
-                opacity: cell.anyActive ? 1 : 0.5
+                opacity: cell.anyActive || hover.hovered ? 1 : 0.8
             }
-            Repeater {
-                model: cell.instances.length
-                delegate: Text {
-                    id: dot
-                    required property int index
-                    readonly property int total: cell.instances.length
-                    readonly property real orbit: 16
-                    readonly property real targetAngle: (Math.PI * 2 / Math.max(total, 1)) * index + Math.PI / 2
-                    readonly property real birthAngle: index > 0 ? (Math.PI * 2 / Math.max(total - 1, 1)) * (index - 1) + Math.PI / 2 : targetAngle
-                    property real angle: birthAngle
-                    visible: cell.anyActive
-                    text: "*"
-                    font.pixelSize: 10
-                    font.bold: true
-                    color: Theme.primary
-                    x: cell.width / 2 + Math.cos(angle) * orbit - width / 2
-                    y: cell.height / 2 + Math.sin(angle) * orbit - height / 2
-                    Component.onCompleted: angle = Qt.binding(() => dot.targetAngle)
-                    Behavior on angle {
-                        NumberAnimation {
-                            duration: 320
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                }
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 2
+                width: cell.anyActive ? 12 : 4
+                height: 3
+                radius: 2
+                visible: cell.instances.length > 0
+                color: cell.anyActive ? Theme.primary : Theme.onSurfaceVariantColor
+                Behavior on width { NumberAnimation { duration: 160 } }
             }
             HoverHandler {
+                id: hover
                 onHoveredChanged: {
                     if (hovered)
                         root.hoveredCell = cell;
@@ -115,6 +104,7 @@ Grid {
                 }
             }
             MouseArea {
+                id: mouse
                 anchors.fill: parent
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.activateGroup(cell.modelData)

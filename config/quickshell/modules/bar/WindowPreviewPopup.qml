@@ -17,6 +17,21 @@ Item {
         id: list
         width: root.implicitWidth
         spacing: 6
+        Text {
+            width: parent.width
+            text: root.group?.name ?? root.group?.appId ?? ""
+            font.family: "CaskaydiaCove NF"
+            font.pixelSize: 14
+            font.bold: true
+            color: Theme.primary
+        }
+        Text {
+            visible: root.windows.length === 0
+            text: "Click to open"
+            font.family: "CaskaydiaCove NF"
+            font.pixelSize: 12
+            color: Theme.onSurfaceVariantColor
+        }
         Repeater {
             model: root.windows
             Rectangle {

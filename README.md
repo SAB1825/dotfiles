@@ -38,6 +38,15 @@ The bar and its popups follow Phoenix’s wallpaper-generated palette. GitHub
 shows today’s commit count beside its icon; its compact popup contains a
 contribution calendar shaded with the generated accent and recent commit links.
 
+The bar keeps the launcher, workspaces, and active window title on the left, a centered dock for
+Code OSS, Helium, and Kitty, and the date/calendar with status controls on the
+right. Dock icons launch closed apps, focus or cycle existing windows, and
+animate on hover and press. Battery has no hover effect; the session symbol
+retains its bar connection. Audio and brightness use the original vertical
+sliders, with separate night-light and performance popups. General settings
+groups bar options into Layout, Modules, and Appearance; side-module switches
+and reorder arrows persist between sessions.
+
 ## Kitty and wallpaper
 
 - **Super+T** opens Kitty. Phoenix also uses Kitty for terminal applications.

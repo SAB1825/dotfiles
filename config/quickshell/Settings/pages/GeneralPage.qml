@@ -258,6 +258,7 @@ SettingsPage {
             }
         }
     }
+    Text { text: "BAR · LAYOUT"; font.pixelSize: 14; font.bold: true; color: Theme.primary }
     SettingsGroup {
         SettingsGroup.Entry {
             key: "bar.style"
@@ -334,6 +335,71 @@ SettingsPage {
             }
         }
 
+    }
+    Text { text: "BAR · MODULES"; font.pixelSize: 14; font.bold: true; color: Theme.primary }
+    Text {
+        width: parent.width
+        text: "Left: launcher, workspaces and active window title. Center dock: Code, Helium, Kitty. Right: calendar, status and power. Use arrows to reorder each side."
+        wrapMode: Text.Wrap
+        font.pixelSize: 13
+        color: Theme.onSurfaceVariantColor
+    }
+    Repeater {
+        model: ["left", "right"]
+        SettingsGroup {
+            id: moduleGroup
+            required property string modelData
+            readonly property var order: modelData === "left" ? BarConfig.leftOrder : BarConfig.rightOrder
+            Repeater {
+                model: moduleGroup.order
+                SettingsGroup.Entry {
+                    id: moduleEntry
+                    required property string modelData
+                    required property int index
+                    key: "bar.module." + modelData
+                    title: BarConfig.moduleLabels[modelData]
+                    description: (moduleGroup.modelData === "left" ? "Left group" : "Right group") + " · position " + (index + 1)
+                    Row {
+                        spacing: 10
+                        SettingsSwitch {
+                            anchors.verticalCenter: parent.verticalCenter
+                            checked: BarConfig.moduleEnabled(moduleEntry.modelData)
+                            onToggled: BarConfig.setModuleEnabled(moduleEntry.modelData, checked)
+                        }
+                        Repeater {
+                            model: [-1, 1]
+                            Rectangle {
+                                id: moveButton
+                                required property int modelData
+                                width: 34
+                                height: 34
+                                radius: 8
+                                enabled: moduleEntry.index + modelData >= 0 && moduleEntry.index + modelData < moduleGroup.order.length
+                                opacity: enabled ? 1 : 0.3
+                                color: moveMouse.containsMouse ? Theme.primaryContainer : Theme.surfaceContainerHighest
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: moveButton.modelData < 0 ? "←" : "→"
+                                    font.pixelSize: 18
+                                    color: Theme.onSurfaceColor
+                                }
+                                MouseArea {
+                                    id: moveMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: BarConfig.moveModule(moduleGroup.modelData, moduleEntry.modelData, moveButton.modelData)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Text { text: "BAR · APPEARANCE"; font.pixelSize: 14; font.bold: true; color: Theme.primary }
+    SettingsGroup {
         SettingsGroup.Entry {
             key: "bar.thickness"
             title: "Bar thickness"
@@ -360,4 +426,5 @@ SettingsPage {
             }
         }
     }
+
 }
