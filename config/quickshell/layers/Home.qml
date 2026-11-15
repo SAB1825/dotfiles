@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Ryu.Shell
 import Ryu.Wayland as Wl
 import px.configuration.Wallpaper
@@ -12,6 +13,44 @@ Variants {
         id: screenScope
 
         required property var modelData
+
+        // Niri places this copy behind the overview's workspace previews.
+        Wl.WlrLayershell {
+            namespace: "phoenix-overview-wallpaper"
+            screen: screenScope.modelData
+            layer: Wl.WlrLayer.Background
+            exclusiveZone: -1
+            color: "#101010"
+            mask: Wl.Region {}
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
+            Image {
+                id: overviewWallpaper
+                anchors.fill: parent
+                source: WallpaperConfig.currentWallpaper
+                sourceSize.width: 1280
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: false
+                visible: false
+            }
+
+            MultiEffect {
+                anchors.fill: parent
+                source: overviewWallpaper
+                blurEnabled: true
+                blurMax: 64
+                blur: 1.0
+                autoPaddingEnabled: false
+                brightness: -0.12
+            }
+        }
 
         Wl.WlrLayershell {
             namespace: "phoenix-background"

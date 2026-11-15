@@ -49,6 +49,7 @@ and reorder arrows persist between sessions.
 
 ## Kitty and wallpaper
 
+- Niri's overview uses a blurred copy of the current wallpaper behind workspace previews; the desktop wallpaper stays sharp.
 - **Super+T** opens Kitty. Phoenix also uses Kitty for terminal applications.
 - JetBrains Mono Nerd Font Mono, 12 pt, 80% opacity, 20 px padding, hidden tabs.
 - Niri gives Kitty background blur. All application windows have 16 px rounded corners, with borders and focus rings disabled.

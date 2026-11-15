@@ -308,6 +308,12 @@ animations {
 // Find more information on the wiki:
 // https://niri-wm.github.io/niri/Configuration:-Window-Rules
 
+// Keep a blurred wallpaper copy behind the overview's workspace previews.
+layer-rule {
+    match namespace="^phoenix-overview-wallpaper$"
+    place-within-backdrop true
+}
+
 // Round and clip every application window.
 window-rule {
     geometry-corner-radius 16
