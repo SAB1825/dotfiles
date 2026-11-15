@@ -7,7 +7,7 @@ Item {
     id: root
     required property bool active
     property var hoveredDay: null
-    readonly property int tile: 6
+    readonly property int tile: 5
     readonly property int gap: 2
     readonly property var calendarCells: {
         const days = GitHubService.days;
@@ -18,8 +18,12 @@ Item {
         return cells;
     }
     readonly property int weeks: calendarCells.length / 7
-    readonly property var tones: ["#202b24", "#0e4429", "#006d32", "#26a641", "#39d353"]
-    implicitWidth: 480
+    readonly property var tones: [Theme.surfaceContainerHighest,
+        Qt.tint(Theme.surfaceContainerHighest, Qt.alpha(Theme.primary, 0.25)),
+        Qt.tint(Theme.surfaceContainerHighest, Qt.alpha(Theme.primary, 0.50)),
+        Qt.tint(Theme.surfaceContainerHighest, Qt.alpha(Theme.primary, 0.75)),
+        Theme.primary]
+    implicitWidth: 420
     implicitHeight: column.implicitHeight
     visible: active
     onActiveChanged: if (active) GitHubService.refresh(false)
@@ -30,8 +34,8 @@ Item {
         property bool primary: false
         signal clicked()
         width: buttonText.implicitWidth + 24
-        height: 32
-        radius: 16
+        height: 28
+        radius: 8
         opacity: enabled ? 1 : 0.5
         color: primary ? Theme.primary : buttonMouse.containsMouse ? Theme.primaryContainer : Theme.surfaceContainerHighest
         Text {
@@ -39,7 +43,7 @@ Item {
             anchors.centerIn: parent
             text: button.label
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
+            font.pixelSize: 12
             color: button.primary ? Theme.onPrimaryColor : Theme.onSurfaceVariantColor
         }
         MouseArea {
@@ -62,25 +66,25 @@ Item {
     Column {
         id: column
         width: root.implicitWidth
-        spacing: 8
+        spacing: 7
         Text {
-            text: "@" + GitHubService.username + " · GitHub"
+            text: "GitHub  /  @" + GitHubService.username
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
+            font.pixelSize: 12
             font.bold: true
             color: Theme.primary
         }
         Text {
             text: GitHubService.today === null ? (GitHubService.busy ? "Loading…" : "Commit count unavailable") : GitHubService.today + (GitHubService.today === 1 ? " commit today" : " commits today")
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 22
+            font.pixelSize: 18
             font.bold: true
             color: Theme.onBackgroundColor
         }
         Text {
-            text: "Contributions · past year"
+            text: "CONTRIBUTIONS · PAST YEAR"
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
+            font.pixelSize: 12
             color: Theme.onSurfaceVariantColor
         }
         Column {
@@ -175,9 +179,9 @@ Item {
         }
         Text {
             width: parent.width
-            text: root.hoveredDay ? root.hoveredDay.date + " · " + (root.hoveredDay.count === null ? "activity level " + root.hoveredDay.level : root.hoveredDay.count + " contributions") : "Public contributions · hover a square for details"
+            text: root.hoveredDay ? root.hoveredDay.date + " · " + (root.hoveredDay.count === null ? "activity level " + root.hoveredDay.level : root.hoveredDay.count + " contributions") : "Hover the calendar for contribution details"
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 13
+            font.pixelSize: 12
             color: Theme.onSurfaceVariantColor
         }
         Text {
@@ -186,13 +190,13 @@ Item {
             text: [GitHubService.error, GitHubService.result.calendarError ?? "", GitHubService.result.commitsError ?? ""].filter(x => x !== "").join("\n")
             wrapMode: Text.Wrap
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 13
+            font.pixelSize: 12
             color: Theme.error
         }
         Text {
-            text: "TODAY'S COMMITS · UTC"
+            text: "RECENT COMMITS · TODAY (UTC)"
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 13
+            font.pixelSize: 12
             font.bold: true
             color: Theme.primary
         }
@@ -200,12 +204,12 @@ Item {
             visible: GitHubService.today === 0
             text: "No public commits indexed for today yet."
             font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
+            font.pixelSize: 12
             color: Theme.onSurfaceVariantColor
         }
         Flickable {
             width: parent.width
-            height: Math.min(114, logs.implicitHeight)
+            height: Math.min(156, logs.implicitHeight)
             contentHeight: logs.implicitHeight
             contentWidth: width
             clip: true
@@ -220,8 +224,8 @@ Item {
                         id: row
                         required property var modelData
                         width: logs.width
-                        height: 54
-                        radius: 10
+                        height: 48
+                        radius: 6
                         color: mouse.containsMouse ? Theme.primaryContainer : Theme.surfaceContainer
                         Column {
                             anchors.fill: parent
@@ -232,7 +236,7 @@ Item {
                                 text: row.modelData.title
                                 elide: Text.ElideRight
                                 font.family: "JetBrainsMono Nerd Font"
-                                font.pixelSize: 14
+                                font.pixelSize: 13
                                 color: Theme.onSurfaceColor
                             }
                             Text {
@@ -272,7 +276,7 @@ Item {
             }
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: (GitHubService.stale ? "Cached · " : "") + (GitHubService.result.updated ? Qt.formatDateTime(new Date(GitHubService.result.updated), "hh:mm") + " · " : "") + "every 5 min"
+                text: (GitHubService.stale ? "Cached · " : "") + (GitHubService.result.updated ? Qt.formatDateTime(new Date(GitHubService.result.updated), "hh:mm") + " · " : "") + "auto · 5 min"
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: 12
                 color: Theme.onSurfaceVariantColor

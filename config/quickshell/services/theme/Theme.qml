@@ -100,7 +100,19 @@ QtObject {
         }
     }
 
-    Component.onCompleted: generate()
+    // Wallpaper selection must regenerate the palette as well as the image.
+    property Connections wallpaperWatcher: Connections {
+        target: WallpaperConfig
+        function onCurrentWallpaperChanged() { root.generate(); }
+    }
+
+    Component.onCompleted: {
+        // Restore wallpaper accents after the previous monochrome bar setup.
+        if (scheme === "scheme-monochrome")
+            setScheme("scheme-content");
+        else
+            generate();
+    }
 
     property Timer reloadTimer: Timer {
         interval: 50

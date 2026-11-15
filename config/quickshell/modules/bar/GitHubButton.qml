@@ -5,34 +5,32 @@ import px.services.github
 Rectangle {
     id: root
     property bool open: false
+    property bool vertical: false
     readonly property bool hovered: hover.hovered
-    implicitWidth: 40
+    implicitWidth: vertical ? 40 : Math.max(60, content.implicitWidth + 20)
     implicitHeight: 40
-    radius: height / 2
-    color: Theme.background
+    radius: 12
+    color: open || hovered ? Theme.surfaceContainerHighest : Theme.background
     HoverHandler { id: hover }
-    Text {
+    Row {
+        id: content
         anchors.centerIn: parent
-        text: "\uf09b"
-        font.family: "CaskaydiaCove NF"
-        font.pixelSize: 24
-        color: root.open || (GitHubService.today ?? 0) > 0 ? Theme.primary : Theme.onSurfaceVariantColor
-    }
-    Rectangle {
-        visible: GitHubService.today !== null && GitHubService.today > 0
-        anchors.right: parent.right
-        anchors.top: parent.top
-        width: Math.max(15, count.implicitWidth + 6)
-        height: 15
-        radius: 7
-        color: Theme.primary
+        spacing: 7
         Text {
-            id: count
-            anchors.centerIn: parent
-            text: GitHubService.today > 99 ? "99+" : String(GitHubService.today ?? "")
+            anchors.verticalCenter: parent.verticalCenter
+            text: "\uf09b"
             font.family: "CaskaydiaCove NF"
-            font.pixelSize: 9
-            color: Theme.onPrimaryColor
+            font.pixelSize: 20
+            color: Theme.primary
+        }
+        Text {
+            visible: !root.vertical
+            anchors.verticalCenter: parent.verticalCenter
+            text: GitHubService.today === null ? (GitHubService.busy ? "…" : "–") : String(GitHubService.today)
+            font.family: "JetBrainsMono Nerd Font"
+            font.pixelSize: 13
+            font.bold: true
+            color: Theme.onSurfaceColor
         }
     }
 }

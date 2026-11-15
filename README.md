@@ -32,6 +32,12 @@ Code OSS uses the `zhuangtongfa.material-theme`, `PKief.material-icon-theme`,
 `PKief.material-product-icons`, and `vscodevim.vim` extensions, which can be
 installed through its Extensions view.
 
+## Bar appearance
+
+The bar and its popups follow Phoenix’s wallpaper-generated palette. GitHub
+shows today’s commit count beside its icon; its compact popup contains a
+contribution calendar shaded with the generated accent and recent commit links.
+
 ## Kitty and wallpaper
 
 - **Super+T** opens Kitty. Phoenix also uses Kitty for terminal applications.

@@ -648,6 +648,7 @@ Item {
 
     GitHubButton {
         id: github
+        vertical: !root.horizontal
         open: root.notchOpen && root.target === github
         x: root.px(root.mGitHub, github)
         y: root.py(root.mGitHub, github)
