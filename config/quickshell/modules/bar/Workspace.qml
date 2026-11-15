@@ -11,7 +11,7 @@ Item {
     property bool vertical: false
 
     readonly property var workspaceList: NiriService.forScreen(root.screen)
-    readonly property int count: workspaceList.length
+    readonly property int count: Math.max(5, workspaceList.length)
     readonly property int activeId: workspaceList.find(w => w.is_active)?.id ?? -1
     readonly property var occupied: new Set(NiriService.windows.map(w => w.workspace_id))
 
@@ -38,13 +38,14 @@ Item {
 
                 required property int index
                 readonly property int wsId: root.workspaceList[index]?.id ?? -1
-                readonly property bool active: wsId === root.activeId
+                readonly property bool active: wsId >= 0 && wsId === root.activeId
                 readonly property bool filled: root.occupied.has(wsId)
 
                 width: active ? 45 : 10
                 height: 10
                 radius: height / 2
                 color: filled ? Theme.primary : Theme.onBackgroundColor
+                opacity: wsId >= 0 ? 1 : 0.35
 
                 Behavior on width {
                     SpringAnimation {
@@ -62,6 +63,7 @@ Item {
 
                 MouseArea {
                     anchors.fill: parent
+                    enabled: pill.wsId >= 0
                     onClicked: root.go(pill.wsId)
                     cursorShape: Qt.PointingHandCursor
                 }
