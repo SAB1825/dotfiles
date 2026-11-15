@@ -12,6 +12,11 @@ def main():
     config = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
     cache = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
     sources = [
+        (Path.home() / ".local/state/ryu/colors.json", {
+            "bg": "background", "surface": "surface_container", "fg": "on_surface",
+            "fg_dim": "on_surface_variant", "muted": "outline", "accent": "primary",
+            "accent_alt": "tertiary", "accent_text": "on_primary", "error": "error",
+        }),
         (config / "rice/palette.json", {
             "bg": "surface", "surface": "surface_container", "fg": "on_surface",
             "fg_dim": "on_surface_variant", "muted": "outline", "accent": "primary",
@@ -26,6 +31,7 @@ def main():
     for path, keys in sources:
         try:
             palette = json.loads(path.read_text())
+            palette = palette.get("md3", palette)
             colors = {name: palette[key] for name, key in keys.items()}
             if not all(isinstance(c, str) and re.fullmatch(r"#[0-9a-fA-F]{6}", c)
                        for c in colors.values()):

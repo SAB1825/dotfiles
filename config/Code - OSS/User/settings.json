@@ -25,5 +25,9 @@
     "workbench.list.smoothScrolling": true,
     "terminal.integrated.smoothScrolling": true,
     "files.autoSave": "afterDelay",
-    "explorer.compactFolders": false
+    "explorer.compactFolders": false,
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
+    "terminal.integrated.fontSize": 14,
+    "terminal.external.linuxExec": "kitty"
 }

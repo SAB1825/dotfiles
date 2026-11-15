@@ -1,4 +1,11 @@
 vim.g.netrw_banner = 0
+vim.opt.termguicolors = true
+
+-- Reuse the pinned navigator installed by tmux's submodule setup.
+local navigator = vim.fn.expand("~/.config/tmux/.tmux/plugins/vim-tmux-navigator")
+if vim.fn.filereadable(navigator .. "/plugin/tmux_navigator.vim") == 1 then
+    vim.opt.runtimepath:append(navigator)
+end
 
 vim.opt.nu = true
 vim.opt.relativenumber = true

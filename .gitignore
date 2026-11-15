@@ -33,3 +33,6 @@ backups/
 /config/session/brave-theme/palette.json
 /config/session/brave-theme/current-background.txt
 /config/session/brave-theme/theme/
+
+# Headless Neovim validation log.
+/nvim.log

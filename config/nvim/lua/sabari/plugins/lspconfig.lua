@@ -7,7 +7,7 @@ capabilities = vim.tbl_deep_extend("force", capabilities, require("mini.completi
 vim.lsp.config("*", { capabilities = capabilities })
 
 vim.lsp.config("qmlls", {
-    cmd = { vim.fn.executable("qmlls") == 1 and "qmlls" or "qmlls6" },
+    cmd = { vim.fn.executable("qmlls") == 1 and "qmlls" or "/usr/lib/qt6/bin/qmlls" },
 })
 
 vim.lsp.config("lua_ls", {

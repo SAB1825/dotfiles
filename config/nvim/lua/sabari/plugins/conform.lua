@@ -3,6 +3,11 @@ vim.pack.add({ "https://github.com/stevearc/conform.nvim" })
 local conform = require("conform")
 
 conform.setup({
+    formatters = {
+        qmlformat = {
+            command = vim.fn.executable("qmlformat") == 1 and "qmlformat" or "/usr/lib/qt6/bin/qmlformat",
+        },
+    },
     formatters_by_ft = {
         lua = { "stylua" },
         go = { "gofmt" },

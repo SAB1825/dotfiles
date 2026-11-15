@@ -1,5 +1,5 @@
 vim.pack.add({
-    { src = "https://github.com/nvim-treesitter/nvim-treesitter", branch = "main" },
+    { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
 })
 
 local treesitter = require("nvim-treesitter")
@@ -7,6 +7,10 @@ local treesitter = require("nvim-treesitter")
 vim.treesitter.language.register("qmljs", "qml")
 
 local ensure_installed = {
+    "lua",
+    "rust",
+    "vim",
+    "vimdoc",
     "go",
     "typescript",
     "javascript",
