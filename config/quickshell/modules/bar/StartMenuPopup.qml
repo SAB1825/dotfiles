@@ -1,0 +1,192 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import Ryu.Desktop
+import Ryu.Io
+import Ryu.Ui
+import px.services.theme
+
+Item {
+    id: root
+    required property bool active
+    property int hoveredIndex: -1
+    property bool pressing: false
+    readonly property var items: {
+        const apps = DesktopEntries.applications.values.filter(e => !e.noDisplay).sort((a, b) => a.name.localeCompare(b.name));
+        const out = [];
+        let last = "";
+        for (const e of apps) {
+            const c = e.name.charAt(0).toUpperCase();
+            const letter = /[A-Z]/.test(c) ? c : "#";
+            if (letter !== last) {
+                out.push({
+                    key: "#" + letter,
+                    header: true,
+                    label: letter
+                });
+                last = letter;
+            }
+            out.push({
+                key: e.id,
+                header: false,
+                entry: e
+            });
+        }
+        return out;
+    }
+    implicitWidth: 300
+    implicitHeight: 480
+    visible: active
+    onActiveChanged: if (!active) {
+        root.hoveredIndex = -1;
+        root.pressing = false;
+        list.currentIndex = -1;
+        list.positionViewAtBeginning();
+        list.targetY = list.originY;
+    }
+    ListView {
+        id: list
+        anchors.fill: parent
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+        keyNavigationEnabled: false
+        highlightFollowsCurrentItem: false
+        currentIndex: -1
+        cacheBuffer: 400
+        property real targetY: 0
+        Behavior on contentY {
+            enabled: !list.dragging && !list.flicking
+            SpringAnimation {
+                spring: 3.2
+                damping: 0.32
+                mass: 0.9
+                epsilon: 0.25
+            }
+        }
+        onMovementStarted: targetY = contentY
+        onMovementEnded: targetY = contentY
+        WheelHandler {
+            target: null
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: event => {
+                const delta = event.pixelDelta.y !== 0 ? event.pixelDelta.y * 1.4 : event.angleDelta.y * 0.9;
+                const maxY = Math.max(list.originY, list.originY + list.contentHeight - list.height);
+                list.targetY = Math.max(list.originY, Math.min(maxY, list.targetY - delta));
+                list.contentY = list.targetY;
+            }
+        }
+        model: ScriptModel {
+            values: root.items
+            objectProp: "key"
+        }
+        highlight: Rectangle {
+            id: pill
+            readonly property bool tracking: root.hoveredIndex >= 0 && list.currentItem !== null
+            x: 2
+            y: list.currentItem ? list.currentItem.y + 2 : 0
+            width: list.width - 4
+            height: list.currentItem ? list.currentItem.height - 4 : 0
+            radius: 12
+            color: Theme.surfaceContainerHighest
+            opacity: tracking ? 1 : 0
+            scale: root.pressing ? 0.96 : 1.0
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 120
+                }
+            }
+            Behavior on y {
+                enabled: pill.opacity > 0.01
+                SpringAnimation {
+                    spring: 5
+                    damping: 0.32
+                    epsilon: 0.25
+                }
+            }
+            Behavior on height {
+                enabled: pill.opacity > 0.01
+                SpringAnimation {
+                    spring: 5
+                    damping: 0.32
+                    epsilon: 0.25
+                }
+            }
+            Behavior on scale {
+                SpringAnimation {
+                    spring: 5
+                    damping: 0.4
+                    epsilon: 0.005
+                }
+            }
+        }
+        delegate: Item {
+            id: row
+            required property var modelData
+            required property int index
+            readonly property bool header: modelData.header
+            readonly property var entry: modelData.entry
+            readonly property bool hovered: root.hoveredIndex === index
+            width: list.width
+            height: header ? 36 : 44
+            HoverHandler {
+                enabled: !row.header
+                onHoveredChanged: {
+                    if (hovered) {
+                        root.hoveredIndex = row.index;
+                        list.currentIndex = row.index;
+                    } else if (root.hoveredIndex === row.index) {
+                        root.hoveredIndex = -1;
+                    }
+                }
+            }
+            Text {
+                font.family: "CaskaydiaCove NF"
+                visible: row.header
+                anchors.left: parent.left
+                anchors.leftMargin: 16
+                anchors.verticalCenter: parent.verticalCenter
+                text: row.modelData.label ?? ""
+                font.pixelSize: 13
+                font.weight: Font.DemiBold
+                color: Theme.primary
+            }
+            Item {
+                anchors.fill: parent
+                visible: !row.header
+                IconImage {
+                    id: icon
+                    anchors.left: parent.left
+                    anchors.leftMargin: 16
+                    anchors.verticalCenter: parent.verticalCenter
+                    implicitSize: 28
+                    source: DesktopIcons.path(row.entry?.icon ?? "", "application-x-executable")
+                }
+                Text {
+                    font.family: "CaskaydiaCove NF"
+                    anchors.left: icon.right
+                    anchors.leftMargin: 14
+                    anchors.right: parent.right
+                    anchors.rightMargin: 14
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: row.entry?.name ?? ""
+                    elide: Text.ElideRight
+                    font.pixelSize: 13
+                    font.weight: Font.Medium
+                    color: row.hovered ? Theme.primary : Theme.onSurfaceVariantColor
+                }
+                MouseArea {
+                    id: area
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    cursorShape: Qt.PointingHandCursor
+                    onPressedChanged: root.pressing = pressed
+                    onClicked: {
+                        if (row.entry.runInTerminal)
+                            Exec.detached(["kitty", "-e"].concat(Array.from(row.entry.command)));
+                        else
+                            row.entry.execute();
+                    }
+                }
+            }
+        }
+    }
+}

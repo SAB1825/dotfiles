@@ -1,0 +1,9 @@
+[config]
+
+[templates.phoenix]
+input_path = "/home/usami/Rice/quickshell/theme/colors.json.in"
+output_path = "/home/usami/.local/state/ryu/colors.json"
+
+[templates.kitty]
+input_path = "/home/usami/Rice/quickshell/theme/kitty.conf.in"
+output_path = "/home/usami/.local/state/ryu/kitty.conf"

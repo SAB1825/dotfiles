@@ -1,0 +1,55 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import Ryu.Extraa
+import px.services.theme
+import px.services.controls
+
+Item {
+    id: root
+
+    required property var pill
+    required property bool active
+
+    readonly property int itemWidth: 50
+    readonly property int trackWidth: 42
+    readonly property int sliderLength: 400
+    readonly property int sliderGap: 8
+    onActiveChanged: if (active)
+        BrightnessService.refresh()
+    anchors.centerIn: parent
+    implicitWidth: sliders.implicitWidth - (itemWidth - trackWidth)
+    implicitHeight: sliders.implicitHeight
+    visible: active
+    Row {
+        id: sliders
+        anchors.centerIn: parent
+        spacing: -(root.itemWidth - root.trackWidth - root.sliderGap)
+        Repeater {
+            model: root.pill.kinds
+            MaterialSlider {
+                required property var modelData
+                orientation: MaterialSlider.Vertical
+                sizeStyle: MaterialSlider.Medium
+                value: root.pill.valueOf(modelData)
+                showStops: false
+                showValueIndicator: false
+                outerRadius: 12
+                innerRadius: 2
+                trackColor: Theme.surfaceContainerHighest
+                color: Theme.primary
+                handleColor: Theme.primary
+
+                onValueChanged: {
+                    if (Math.abs(value - root.pill.valueOf(modelData)) > 0.005) {
+                        root.pill.setValue(modelData, value);
+                    }
+                }
+
+                Component.onCompleted: {
+                    width = root.itemWidth;
+                    height = root.sliderLength;
+                }
+            }
+        }
+    }
+}
