@@ -1,9 +1,0 @@
-[config]
-
-[templates.phoenix]
-input_path = "colors.json.in"
-output_path = "/home/usami/.local/state/ryu/colors.json"
-
-[templates.kitty]
-input_path = "kitty.conf.in"
-output_path = "/home/usami/.local/state/ryu/kitty.conf"

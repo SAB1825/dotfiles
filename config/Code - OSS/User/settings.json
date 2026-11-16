@@ -5,11 +5,11 @@
     "window.titleBarStyle": "native",
     "workbench.productIconTheme": "material-product-icons",
     "window.menuBarVisibility": "hidden",
-    "workbench.iconTheme": "material-icon-theme",
+    "workbench.iconTheme": "flow-deep",
     "workbench.colorTheme": "One Dark Pro Night Flat",
     "editor.minimap.enabled": false,
     "breadcrumbs.enabled": false,
-    "editor.fontFamily": "'JetBrainsMono Nerd Font', monospace",
+    "editor.fontFamily": "'FiraCode Nerd Font', monospace",
     "editor.stickyScroll.enabled": false,
     "window.zoomLevel": 1,
     "vim.handleKeys": {

@@ -111,7 +111,7 @@ input {
 // https://niri-wm.github.io/niri/Configuration:-Layout
 layout {
     // Set gaps around windows in logical pixels.
-    gaps 16
+    gaps 4
 
     // When to center a column when changing focus, options are:
     // - "never", default behavior, focusing an off-screen column will keep at the left
@@ -267,8 +267,6 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-// Start the Phoenix shell on every niri login (falls back to Waybar if dependencies are missing).
-spawn-at-startup "bash" "/home/usami/.config/quickshell/main/scripts/start.sh" "--session"
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
@@ -308,11 +306,6 @@ animations {
 // Find more information on the wiki:
 // https://niri-wm.github.io/niri/Configuration:-Window-Rules
 
-// Keep a blurred wallpaper copy behind the overview's workspace previews.
-layer-rule {
-    match namespace="^phoenix-overview-wallpaper$"
-    place-within-backdrop true
-}
 
 // Round and clip every application window.
 window-rule {
@@ -368,10 +361,6 @@ window-rule {
 }
 
 binds {
-    Mod+S hotkey-overlay-title="Shell settings" { spawn "ryuctl" "call" "settings" "toggle"; }
-    Mod+Shift+C hotkey-overlay-title="Clipboard history" { spawn "ryuctl" "call" "clipboard" "toggle"; }
-    Mod+Shift+Print hotkey-overlay-title="Lasso screenshot" { spawn "ryuctl" "call" "screenshot" "lasso"; }
-    Mod+Shift+R hotkey-overlay-title="Record screen / stop" { spawn "ryuctl" "call" "recorder" "toggleScreen" "none"; }
 
     // Keys consist of modifiers separated by + signs, followed by an XKB key name
     // in the end. To find an XKB name for a particular key, you may use a program
@@ -633,8 +622,8 @@ binds {
     // Mod+Space       { switch-layout "next"; }
     // Mod+Shift+Space { switch-layout "prev"; }
 
-    Print { spawn "ryuctl" "call" "screenshot" "region"; }
-    Ctrl+Print { spawn "ryuctl" "call" "screenshot" "full"; }
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
     Alt+Print { screenshot-window; }
 
     // Applications such as remote-desktop clients and software KVM switches may
