@@ -1,0 +1,12 @@
+{
+  "dmsProfiles": {
+    "enabled": false
+  },
+  "wallpaperCarousel": {
+    "enabled": true,
+    "wallpaperDirectory": "/home/usami/Pictures/Wallpapers"
+  },
+  "dankKDEConnect": {
+    "enabled": true
+  }
+}
