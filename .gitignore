@@ -36,3 +36,6 @@ backups/
 
 # Headless Neovim validation log.
 /nvim.log
+
+# Local wallpaper processing tools and downloaded models.
+/wallpapers/.tools/
