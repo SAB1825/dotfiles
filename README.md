@@ -1,9 +1,10 @@
-# Sabari's dotfiles — Arch + niri + Phoenix
+# Sabari's dotfiles — Arch + niri + DankMaterialShell
 
 Selected configs are active through symlinks:
 
 | Config | Active location |
 | --- | --- |
+| Alacritty | `~/.config/alacritty` |
 | Kitty | `~/.config/kitty` |
 | Niri | `~/.config/niri/config.kdl` |
 | Neovim | `~/.config/nvim` |
@@ -12,11 +13,14 @@ Selected configs are active through symlinks:
 | Phoenix / Quickshell | `~/.config/quickshell/main` |
 | Wallpaper collection | `~/Pictures/Wallpapers` |
 
-Edits in this repository apply to the linked configs. Phoenix's source lives
-in `config/quickshell`, linked at `~/.config/quickshell/main`. The old
-`~/Rice/quickshell` path forwards to this directory for existing desktop links.
-Niri's active configuration links to `config/niri/config.kdl`. Zsh and Fastfetch
-are retained as source files and are not activated by this setup. Fish has been removed.
+Edits in this repository apply to the linked configs. Alacritty's active
+symlink points to `config/alacritty`; its previous config remains in
+`~/.config.tapes/alacritty`. It uses FiraCode Nerd Font Mono at 14 pt,
+10 px padding, and imports the included DMS-generated `dank-theme.toml`.
+
+DankMaterialShell settings and installed plugins are kept as a snapshot in
+`config/dms`. See [the DMS README](config/dms/README.md) for restore instructions.
+Zsh and Fastfetch are retained as source files and are not activated by this setup.
 
 ## Plugin downloads
 
@@ -32,39 +36,18 @@ Code OSS uses the `zhuangtongfa.material-theme`, `PKief.material-icon-theme`,
 `PKief.material-product-icons`, and `vscodevim.vim` extensions, which can be
 installed through its Extensions view.
 
-## Bar appearance
+## Desktop and Kitty
 
-The bar and its popups follow Phoenix’s wallpaper-generated palette. GitHub
-shows today’s commit count beside its icon; its compact popup contains a
-contribution calendar shaded with the generated accent and recent commit links.
+DankMaterialShell provides the desktop shell. Its snapshot includes the current
+bar layout, theme settings, plugins, and generated Firefox styling.
 
-The bar keeps the launcher, workspaces, and active window title on the left, a centered dock for
-Code OSS, Helium, and Kitty, and the date/calendar with status controls on the
-right. Dock icons launch closed apps, focus or cycle existing windows, and
-animate on hover and press. Battery has no hover effect; the session symbol
-retains its bar connection. Audio and brightness use the original vertical
-sliders, with separate night-light and performance popups. General settings
-groups bar options into Layout, Modules, and Appearance; side-module switches
-and reorder arrows persist between sessions.
-
-## Kitty and wallpaper
-
-- Niri's overview uses a blurred copy of the current wallpaper behind workspace previews; the desktop wallpaper stays sharp.
-- **Super+T** opens Kitty. Phoenix also uses Kitty for terminal applications.
-- JetBrains Mono Nerd Font Mono, 12 pt, 80% opacity, 20 px padding, hidden tabs.
-- Niri gives Kitty background blur. All application windows have 16 px rounded corners, with borders and focus rings disabled.
-- Kitty starts the installed Bash shell and exports `EDITOR=nvim` / `VISUAL=nvim`.
-- Colours follow Phoenix's wallpaper via `~/.local/state/ryu/kitty.conf`. The
-  original `colors.conf` remains a fallback. Wallpaper changes regenerate the
-  include and reload running Kitty windows with SIGUSR1; no remote-control socket
-  is enabled.
-- The wallpaper picker uses `~/Pictures/Wallpapers`. Your current wallpaper is
-  preserved until you choose another image in **Super+S → General**.
-- Old `rice-flat.conf` is unused; DarkShadow's Shell is not required.
+**Super+T** opens Kitty. Kitty uses 40% background opacity and imports its
+DMS-generated theme and tab styling. Niri's window rules and keybindings live
+in `config/niri/config.kdl`. Wallpapers are stored in `wallpapers`.
 
 ## Neovim
 
-The original Space leader, Moonfly theme, completion, file pickers, Git tools,
+The original Space leader, transparent No Clown Fiesta theme, completion, file pickers, Git tools,
 formatters and diagnostics are preserved. Neovim 0.12's native `vim.pack` installs
 plugins using `nvim-pack-lock.json`. Before plugins are downloaded, Neovim still
 opens with core settings and a built-in theme, displaying a setup reminder.
@@ -83,8 +66,7 @@ See [the Neovim README](config/nvim/README.md) for keybindings.
 ## tmux
 
 The prefix is **backtick (`)**. The original pane bindings and status layout stay.
-The palette helper now reads `~/.local/state/ryu/colors.json` first and updates
-colours every five seconds. Old palette files remain fallback sources.
+The status line, pane borders, and popups use a fixed black-and-white palette.
 
 - Prefix + `|` / `-`: split horizontally / vertically.
 - Prefix + `r`: reload config.
@@ -108,8 +90,6 @@ Open VSX registry. Restart Code after installation if a theme has not activated.
 
 ## Validation
 
-Kitty config parses and its generated colours match the current Phoenix palette.
-Neovim starts headlessly with the installed 0.12 release; all Lua files parse.
-Code settings are valid JSON and niri validates. Live tmux socket tests and live
-Wayland reloads require your desktop terminal because those sockets are blocked
-in the tool environment.
+Parse Alacritty's TOML files and DMS's JSON files after editing. Neovim uses
+0.12's native package manager; see its README for setup and keybindings.
+Validate compositor changes with `niri validate` before reloading the desktop.

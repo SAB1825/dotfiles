@@ -1,0 +1,12 @@
+[general]
+import = ["dank-theme.toml"]
+
+[window.padding]
+x = 10
+y = 10
+
+[font]
+size = 14.0
+
+[font.normal]
+family = "FiraCode Nerd Font Mono"
