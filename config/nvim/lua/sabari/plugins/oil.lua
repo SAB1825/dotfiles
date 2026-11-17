@@ -1,6 +1,19 @@
 vim.pack.add({ "https://github.com/stevearc/oil.nvim" })
 
+local function icon_highlights()
+    vim.api.nvim_set_hl(0, "OilWhiteIcon", { fg = "#ffffff" })
+end
+
+icon_highlights()
+vim.api.nvim_create_autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("OilIconAppearance", { clear = true }),
+    callback = icon_highlights,
+})
+
 require("oil").setup({
+    columns = {
+        { "icon", highlight = "OilWhiteIcon" },
+    },
     float = {
         max_width = 0.6,
         max_height = 0.6,

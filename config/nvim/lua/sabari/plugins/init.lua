@@ -1,5 +1,5 @@
 -- Explicit loading order keeps plugin dependencies predictable.
-require("sabari.plugins.moonfly")
+require("sabari.plugins.no-clown-fiesta")
 require("sabari.plugins.mini")
 require("sabari.plugins.tiny-cmdline")
 require("sabari.plugins.lualine")
