@@ -1,5 +1,8 @@
 [general]
-import = ["dank-theme.toml"]
+import = ["~/.config/alacritty/themes/black.toml"]
+
+[window]
+decorations = "None"
 
 [window.padding]
 x = 10
