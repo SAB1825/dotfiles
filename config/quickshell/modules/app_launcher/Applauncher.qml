@@ -1,0 +1,372 @@
+pragma ComponentBehavior: Bound
+
+import Quickshell
+import QtQuick
+
+FocusScope {
+    id: root
+
+    required property font textFont
+    readonly property real cornerRadius: 30
+    readonly property font launcherFont: Qt.font({
+        family: textFont.family,
+        pixelSize: textFont.pixelSize - 2,
+        weight: Font.Normal
+    })
+    readonly property font secondaryFont: Qt.font({
+        family: textFont.family,
+        pixelSize: 12,
+        weight: Font.Normal
+    })
+    signal dismissRequested()
+
+    property bool open: false
+    focus: open
+    enabled: open
+
+    property string searchQuery: ""
+    property int selectedIndex: 0
+    readonly property bool isSearching: searchQuery.trim() !== ""
+
+    property var filteredApps: {
+        var q = searchQuery.trim().toLowerCase(); // User's search text
+        var vals = DesktopEntries.applications.values;
+
+        if (q !== "") {
+            // Filter apps that match the search
+            return vals.filter(function (e) {
+                if (e.name.toLowerCase().indexOf(q) !== -1) // App name
+                    return true;
+                if (e.genericName && e.genericName.toLowerCase().indexOf(q) !== -1) // Generic name
+                    return true;
+                for (var i = 0; i < e.keywords.length; i++) {
+                    if (e.keywords[i].toLowerCase().indexOf(q) !== -1)
+                        return true;
+                }
+                return false;
+            }).sort(function (a, b) {
+                return a.name.localeCompare(b.name);
+            });
+        }
+
+        const recentIds = ApplauncherState.recentIds;
+        const recentApps = recentIds.map(id => {
+            return vals.find(entry => entry.id === id);
+        }).filter(entry => entry !== undefined);
+        const otherApps = vals.filter(entry => !recentIds.includes(entry.id))
+            .sort((a, b) => a.name.localeCompare(b.name));
+        return recentApps.concat(otherApps);
+    }
+
+    onFilteredAppsChanged: {
+        selectedIndex = 0;
+        listView.positionViewAtBeginning();
+    }
+
+    function launchEntry(entry) {
+        if (!entry)
+            return;
+        ApplauncherState.recordLaunch(entry.id);
+        entry.execute();
+        root.dismissRequested();
+    }
+
+    function navigate(delta) {
+        if (filteredApps.length === 0)
+            return;
+        selectedIndex = (selectedIndex + delta + filteredApps.length) % filteredApps.length;
+        listView.positionViewAtIndex(selectedIndex, ListView.Contain);
+    }
+
+    onOpenChanged: {
+        if (open) {
+            searchInput.clear();
+            searchQuery = "";
+            selectedIndex = 0;
+            searchInput.forceActiveFocus();
+        }
+    }
+
+    readonly property color foreground: "#c8cde0"
+    readonly property color secondary: "#898e9b"
+    readonly property int itemH: 47
+    implicitWidth: 508
+    readonly property int resultsHeight: isSearching && filteredApps.length === 0
+        ? itemH : Math.min(filteredApps.length, 6) * itemH
+    implicitHeight: 86 + resultsHeight
+
+    Column {
+        anchors {
+            top: parent.top
+            topMargin: 8
+            left: parent.left
+            leftMargin: 14
+            right: parent.right
+            rightMargin: 14
+        }
+        spacing: 0
+        opacity: root.open ? 1 : 0
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 160
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        transform: Translate {
+            y: root.open ? 0 : -6
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: 220
+                    easing.type: Easing.OutCubic
+                }
+            }
+        }
+
+        Item {
+            width: parent.width
+            height: 48
+
+            Row {
+                anchors {
+                    fill: parent
+                    rightMargin: 8
+                }
+                spacing: 10
+
+                Item {
+                    id: searchIcon
+                    width: 18
+                    height: 18
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    Rectangle {
+                        x: 1
+                        y: 1
+                        width: 12
+                        height: 12
+                        radius: width / 2
+                        color: "transparent"
+                        border.color: root.secondary
+                        border.width: 1
+                    }
+
+                    Rectangle {
+                        x: 11
+                        y: 11
+                        width: 8
+                        height: 2
+                        radius: 1
+                        color: root.secondary
+                        rotation: 45
+                        transformOrigin: Item.Left
+                    }
+                }
+
+                Item {
+                    width: Math.max(0, parent.width - searchIcon.width - parent.spacing)
+                    height: parent.height
+
+                    Text {
+                        anchors.fill: parent
+                        text: "Search…"
+                        color: root.secondary
+                        font: root.launcherFont
+                        verticalAlignment: Text.AlignVCenter
+                        visible: searchInput.text === ""
+                    }
+
+                    TextInput {
+                        id: searchInput
+                        focus: true
+                        anchors.fill: parent
+                        color: root.foreground
+                        selectionColor: root.foreground
+                        selectedTextColor: "#000000"
+                        font: root.launcherFont
+                        verticalAlignment: TextInput.AlignVCenter
+                        clip: true
+
+                        onTextChanged: root.searchQuery = text
+
+                        Keys.onPressed: function (event) {
+                            if (event.key === Qt.Key_Up) {
+                                root.navigate(-1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Down) {
+                                root.navigate(1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                if (root.filteredApps.length > 0)
+                                    root.launchEntry(root.filteredApps[root.selectedIndex]);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_Escape) {
+                                root.dismissRequested();
+                                event.accepted = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Item { width: 1; height: 4 }
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: "#222326"
+        }
+
+        Item { width: 1; height: 10 }
+
+        ListView {
+            id: listView
+            width: parent.width
+            height: root.resultsHeight
+            model: root.filteredApps
+            clip: true
+            interactive: false
+
+            add: Transition {
+                NumberAnimation {
+                    property: "opacity"
+                    from: 0
+                    to: 1
+                    duration: 140
+                    easing.type: Easing.OutCubic
+                }
+            }
+
+            // Scroll through the results with the mouse wheel
+            MouseArea {
+                anchors.fill: parent
+                onWheel: function (wheel) {
+                    if (wheel.angleDelta.y < 0)
+                        root.navigate(1);
+                    else
+                        root.navigate(-1);
+                }
+            }
+
+            Text {
+                anchors.centerIn: parent
+                visible: opacity > 0
+                text: "No apps found"
+                color: root.foreground
+                opacity: root.isSearching && root.filteredApps.length === 0 ? 1 : 0
+                font: root.secondaryFont
+
+                Behavior on opacity {
+                    NumberAnimation { duration: 120 }
+                }
+            }
+
+            delegate: Item {
+                id: appRow
+                required property int index
+                required property var modelData
+                width: listView.width
+                height: root.itemH
+
+                readonly property bool sel: root.selectedIndex === appRow.index
+                Rectangle {
+                    anchors.fill: parent
+                    radius: 10
+                    color: appRow.sel ? "#191b1f" : "transparent"
+
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 2
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: 3
+                        height: 24
+                        radius: 1.5
+                        color: "#99d9d6"
+                        visible: appRow.sel
+                    }
+
+                    Row {
+                        id: resultContent
+                        anchors {
+                            fill: parent
+                            leftMargin: 11
+                            rightMargin: 8
+                        }
+                        spacing: 10
+
+                        Rectangle {
+                            id: appIconSlot
+                            width: 34
+                            height: 34
+                            radius: 10
+                            color: appRow.sel ? "#292c33" : "#111317"
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            Image {
+                                id: appIcon
+                                anchors.centerIn: parent
+                                width: 22
+                                height: 22
+                                source: appRow.modelData.icon
+                                    ? Quickshell.iconPath(appRow.modelData.icon, true) : ""
+                                fillMode: Image.PreserveAspectFit
+                                mipmap: true
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                visible: appIcon.status !== Image.Ready
+                                text: appRow.modelData.name.charAt(0).toUpperCase()
+                                font: root.launcherFont
+                                color: root.foreground
+                            }
+                        }
+
+                        // Name + subtitle
+                        Column {
+                            width: Math.max(0, resultContent.width - appIconSlot.width - resultContent.spacing)
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 0
+
+                            Text {
+                                width: parent.width
+                                elide: Text.ElideRight
+                                text: appRow.modelData.name
+                                font.family: root.launcherFont.family
+                                font.pixelSize: root.launcherFont.pixelSize
+                                font.weight: Font.Medium
+                                color: root.foreground
+                            }
+
+                            Text {
+                                width: parent.width
+                                visible: appRow.modelData.genericName !== ""
+                                elide: Text.ElideRight
+                                text: appRow.modelData.genericName
+                                font: root.secondaryFont
+                                color: root.secondary
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: root.selectedIndex = appRow.index
+                        onClicked: root.launchEntry(appRow.modelData)
+                        onWheel: function (wheel) {
+                            if (wheel.angleDelta.y < 0)
+                                root.navigate(1);
+                            else
+                                root.navigate(-1);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+}
