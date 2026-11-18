@@ -107,7 +107,7 @@ map_key("<CR>", function()
     return "<CR>"
 end, "Accept selected completion or newline")
 
-for _, key in ipairs({ "<Up>", "<Down>", "<Left>", "<Right>" }) do
+for _, key in ipairs({ "<Up>", "<Down>" }) do
     map_key(key, function()
         return vim.fn.pumvisible() == 1 and "<Ignore>" or key
     end, "Disable arrow navigation during completion")
