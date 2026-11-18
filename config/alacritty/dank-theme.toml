@@ -1,5 +1,5 @@
 [colors.primary]
-background = '#000000'
+background = '#141313'
 foreground = '#e5e2e1'
 
 [colors.selection]
@@ -29,5 +29,3 @@ blue    = '#feffff'
 magenta = '#feffff'
 cyan    = '#feffff'
 white   = '#f8ffff'
-[window]
-opacity = 1.0
