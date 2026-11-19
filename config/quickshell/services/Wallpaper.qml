@@ -21,6 +21,15 @@ Singleton {
 
     signal applied(string path)
 
+    onApplied: path => root.generatePalette(path)
+
+    function generatePalette(path: string): void {
+        if (!path || matugen.running)
+            return;
+        matugen.imagePath = path;
+        matugen.running = true;
+    }
+
     function start() {
         state.reload();
     }
@@ -73,6 +82,35 @@ Singleton {
         }
 
         onSaveFailed: error => console.warn("Couldn't save wallpaper:", error)
+    }
+
+    FileView {
+        id: palette
+        path: Quickshell.stateDir + "/wallpaper-colors.json"
+        printErrors: false
+        atomicWrites: true
+        onSaveFailed: error => console.warn("Couldn't save wallpaper colors:", error)
+    }
+
+    Process {
+        id: matugen
+        property string imagePath: ""
+        command: ["matugen", "image", "--config", Quickshell.shellPath("services/matugen.toml"),
+            "--dry-run", "--json", "hex", "--source-color-index", "0", "--include-image-in-json", "true", imagePath]
+        stdout: StdioCollector { id: colors }
+        stderr: StdioCollector { id: matugenErrors }
+
+        onExited: (code, status) => {
+            if (imagePath !== root.currentPath) {
+                Qt.callLater(() => root.generatePalette(root.currentPath));
+                return;
+            }
+            if (code !== 0 || status !== 0 || !colors.text.trim()) {
+                console.warn("Couldn't generate wallpaper colors:", matugenErrors.text.trim() || "invalid Matugen output");
+                return;
+            }
+            palette.setText(colors.text);
+        }
     }
 
     Process {
