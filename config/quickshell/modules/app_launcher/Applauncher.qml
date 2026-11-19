@@ -60,7 +60,13 @@ FocusScope {
     }
 
     onFilteredAppsChanged: {
+        resetSelection();
+    }
+
+    function resetSelection() {
         selectedIndex = 0;
+        keyboardScroll.stop();
+        listView.cancelFlick();
         listView.positionViewAtBeginning();
     }
 
@@ -83,14 +89,31 @@ FocusScope {
         if (filteredApps.length === 0)
             return;
         selectedIndex = (selectedIndex + delta + filteredApps.length) % filteredApps.length;
-        listView.positionViewAtIndex(selectedIndex, ListView.Contain);
+
+        const top = listView.originY + selectedIndex * itemH;
+        const bottom = top + itemH;
+        const offset = keyboardScroll.running ? keyboardScroll.to : listView.contentY;
+        const maxOffset = listView.originY + Math.max(0, listView.count * itemH - listView.height);
+        const target = Math.min(maxOffset, Math.max(listView.originY,
+            Math.min(top, Math.max(offset, bottom - listView.height))));
+        if (target === offset)
+            return;
+
+        listView.cancelFlick();
+        keyboardScroll.stop();
+        if (Math.abs(target - listView.contentY) > listView.height) {
+            listView.positionViewAtIndex(selectedIndex, ListView.Contain);
+        } else {
+            keyboardScroll.to = target;
+            keyboardScroll.start();
+        }
     }
 
     onOpenChanged: {
         if (open) {
             searchInput.clear();
             searchQuery = "";
-            selectedIndex = 0;
+            resetSelection();
             searchInput.forceActiveFocus();
         }
     }
@@ -236,7 +259,17 @@ FocusScope {
             height: root.resultsHeight
             model: root.filteredApps
             clip: true
-            interactive: false
+            flickableDirection: Flickable.VerticalFlick
+            boundsBehavior: Flickable.StopAtBounds
+            onMovementStarted: keyboardScroll.stop()
+
+            NumberAnimation {
+                id: keyboardScroll
+                target: listView
+                property: "contentY"
+                duration: 160
+                easing.type: Easing.OutCubic
+            }
 
             add: Transition {
                 NumberAnimation {
@@ -245,17 +278,6 @@ FocusScope {
                     to: 1
                     duration: 140
                     easing.type: Easing.OutCubic
-                }
-            }
-
-            // Scroll through the results with the mouse wheel
-            MouseArea {
-                anchors.fill: parent
-                onWheel: function (wheel) {
-                    if (wheel.angleDelta.y < 0)
-                        root.navigate(1);
-                    else
-                        root.navigate(-1);
                 }
             }
 
@@ -363,14 +385,11 @@ FocusScope {
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        onEntered: root.selectedIndex = appRow.index
-                        onClicked: root.launchEntry(appRow.modelData)
-                        onWheel: function (wheel) {
-                            if (wheel.angleDelta.y < 0)
-                                root.navigate(1);
-                            else
-                                root.navigate(-1);
+                        onEntered: {
+                            if (!keyboardScroll.running)
+                                root.selectedIndex = appRow.index;
                         }
+                        onClicked: root.launchEntry(appRow.modelData)
                     }
                 }
             }
