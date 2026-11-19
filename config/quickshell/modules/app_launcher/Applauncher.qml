@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import Quickshell
+import Quickshell.Io
 import QtQuick
 
 FocusScope {
@@ -64,10 +65,17 @@ FocusScope {
     }
 
     function launchEntry(entry) {
-        if (!entry)
+        if (!entry || (entry.runInTerminal && !entry.command.length))
             return;
         ApplauncherState.recordLaunch(entry.id);
-        entry.execute();
+        if (entry.runInTerminal) {
+            Quickshell.execDetached({
+                command: ["kitty", "--", ...entry.command],
+                workingDirectory: entry.workingDirectory
+            });
+        } else {
+            entry.execute();
+        }
         root.dismissRequested();
     }
 
