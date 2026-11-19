@@ -6,9 +6,9 @@ A monochrome Arch Linux desktop with niri, a custom Quickshell shell, and a term
 
 ## Desktop showcase
 
-https://github.com/user-attachments/assets/89ebb0ff-aa4c-4569-a52f-0d469fe39800
+[![Quickshell desktop showcase video](https://i.ytimg.com/vi/RfIYW371o9A/hqdefault.jpg)](https://youtu.be/RfIYW371o9A)
 
-[Download the Quickshell showcase (MP4)](assets/quickshell_showcase.mp4)
+[Watch on YouTube](https://youtu.be/RfIYW371o9A)
 
 The Quickshell island brings together niri workspaces, an app launcher, clipboard history, a dashboard, notifications, connectivity controls, and a wallpaper picker.
 
