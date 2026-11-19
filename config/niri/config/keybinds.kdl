@@ -13,8 +13,8 @@ binds {
     Print { screenshot; }
     Super+Print { screenshot-screen; }
 
-    XF86PowerOff { spawn "swaylock"; }
-    Mod+L { spawn "swaylock"; }
+    XF86PowerOff { spawn "sh" "-c" "quickshell ipc call lockscreen lock || exec swaylock"; }
+    Mod+L { spawn "sh" "-c" "quickshell ipc call lockscreen lock || exec swaylock"; }
 
     Mod+Space { spawn "quickshell" "ipc" "call" "applauncher" "toggle"; }
     Mod+V { spawn "quickshell" "ipc" "call" "clipboard" "toggle"; }

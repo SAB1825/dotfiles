@@ -7,6 +7,7 @@ import Quickshell
 import Quickshell.Io
 import "modules"
 import "modules/clipboard"
+import "modules/lockscreen"
 import qs.services
 
 ShellRoot {
@@ -40,6 +41,18 @@ ShellRoot {
         function onFocusEnabledChanged() {
             if (Notifications.focusEnabled)
                 IslandState.close();
+        }
+    }
+
+    LockScreen {
+        id: lockScreen
+    }
+
+    IpcHandler {
+        target: "lockscreen"
+
+        function lock() {
+            lockScreen.engage();
         }
     }
 
