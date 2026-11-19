@@ -1,6 +1,18 @@
 # Sabari’s dotfiles
 
-A minimal Arch Linux desktop with niri, a custom Quickshell configuration, and a monochrome theme.
+A monochrome Arch Linux desktop with niri, a custom Quickshell shell, and a terminal-based workflow.
+
+[![Arch Linux desktop showing Fastfetch with a custom Gojo image](assets/fastfetch.jpg)](assets/fastfetch.jpg)
+
+## Desktop showcase
+
+[**Watch the Quickshell showcase**](assets/quickshell_showcase.mp4) · MP4
+
+The Quickshell island brings together niri workspaces, an app launcher, clipboard history, a dashboard, notifications, connectivity controls, and a wallpaper picker.
+
+[![Neovim and tmux with split panes and a monochrome status line](assets/tmux%26nvim.jpg)](assets/tmux%26nvim.jpg)
+
+Neovim and tmux share a transparent, monochrome setup.
 
 ## The setup
 
@@ -13,14 +25,6 @@ A minimal Arch Linux desktop with niri, a custom Quickshell configuration, and a
 | Multiplexer | [tmux](config/tmux/) |
 | System info | [Fastfetch](config/fastfetch/) |
 | Wallpapers | [Collection](wallpapers/) |
-
-## Desktop features
-
-The Quickshell island shows niri workspaces and opens the app launcher, clipboard history, dashboard, notification center, connectivity controls, and wallpaper picker.
-
-**Neovim + tmux** — transparent editor, split panes, and a black-and-white status line.
-
-**Fastfetch** — system details with a custom Gojo image.
 
 ## Setup notes
 
@@ -43,7 +47,9 @@ nvim --headless -u NONE -l config/nvim/scripts/bootstrap.lua
 Treesitter installs parsers on first launch. Use `:Mason` to install language
 servers and formatters; Qt’s `qmlls` and `qmlformat` are installed separately.
 
-## Everyday keys
+<details>
+<summary>Everyday shortcuts</summary>
+
 
 | Keys | Action |
 | --- | --- |
@@ -61,3 +67,5 @@ servers and formatters; Qt’s `qmlls` and `qmlformat` are installed separately.
 
 Tmux clipboard integration uses `wl-copy`. Extra pickers and shortcuts may need
 `sesh`, `gum`, `fzf`, `fd`, `yazi`, `lazygit`, or `rmpc`.
+
+</details>

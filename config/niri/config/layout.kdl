@@ -1,5 +1,6 @@
 layout {
     gaps 4
+    background-color "transparent"
     border {
         off
     }
@@ -14,4 +15,9 @@ layout {
 window-rule {
     geometry-corner-radius 8
     clip-to-geometry true
+}
+
+layer-rule {
+    match namespace="^wallpaper$"
+    place-within-backdrop true
 }
