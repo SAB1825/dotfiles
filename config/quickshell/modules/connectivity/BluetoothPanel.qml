@@ -73,6 +73,8 @@ ConnectivityPanel {
                                 fontFamily: root.textFont.family
                                 title: entry.modelData.name || entry.modelData.address
                                 detail: entry.group
+                                iconName: entry.modelData.connected || entry.modelData.paired
+                                    ? "bluetooth-paired-symbolic" : "bluetooth-disconnected-symbolic"
                                 rowAction: BluetoothControl.pairDevice === entry.modelData ? "Pairing…"
                                     : BluetoothControl.connectionDevice === entry.modelData
                                         ? (BluetoothControl.connecting ? "Connecting…" : "Disconnecting…")

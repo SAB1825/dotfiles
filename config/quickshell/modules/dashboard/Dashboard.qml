@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import "../notifications"
+import "../theme"
 import qs.services
 
 FocusScope {
@@ -16,13 +17,12 @@ FocusScope {
     signal bluetoothRequested()
 
     readonly property int cornerRadius: 30
-    readonly property color foreground: "#ffffff"
-    readonly property color secondary: "#b3b3b3"
-    readonly property color surface: "#121212"
-    readonly property color raised: "#262626"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
+    readonly property color surface: Monochrome.background
+    readonly property color raised: Monochrome.raised
     readonly property int inset: 16
     readonly property int sectionSpacing: 10
-    readonly property string iconFont: "JetBrainsMono Nerd Font"
     readonly property var battery: DashboardControls.battery
     readonly property real batteryFraction: Math.max(0, Math.min(1, battery?.percentage ?? 0))
 
@@ -77,7 +77,7 @@ FocusScope {
     component Tile: Button {
         id: tile
         required property string detail
-        required property string glyph
+        required property string iconName
         required property bool active
 
         Layout.fillWidth: true
@@ -90,8 +90,8 @@ FocusScope {
 
         background: Rectangle {
             radius: height / 2
-            color: tile.down ? "#333333" : tile.hovered ? "#202020" : root.surface
-            border.color: tile.visualFocus ? root.foreground : "transparent"
+            color: tile.down || tile.hovered ? root.raised : root.surface
+            border.color: tile.visualFocus ? Monochrome.accent : Monochrome.outline
         }
 
         contentItem: RowLayout {
@@ -102,23 +102,14 @@ FocusScope {
                 Layout.preferredWidth: 38
                 Layout.preferredHeight: 38
                 radius: width / 2
-                color: tile.active ? root.foreground : root.raised
+                color: tile.active ? Monochrome.accent : root.raised
 
-                Text {
-                    id: tileIcon
-                    font.family: root.iconFont
-                    font.pixelSize: 17
+                StatusIcon {
                     anchors.centerIn: parent
-                    anchors.horizontalCenterOffset: width / 2 - tileGlyphMetrics.tightBoundingRect.x - tileGlyphMetrics.tightBoundingRect.width / 2
-                    anchors.verticalCenterOffset: height / 2 - baselineOffset - tileGlyphMetrics.tightBoundingRect.y - tileGlyphMetrics.tightBoundingRect.height / 2
-
-                    TextMetrics {
-                        id: tileGlyphMetrics
-                        font: tileIcon.font
-                        text: tileIcon.text
-                    }
-                    text: tile.glyph
-                    color: tile.active ? "#000000" : root.foreground
+                    width: 18
+                    height: width
+                    iconName: tile.iconName
+                    color: tile.active ? Monochrome.accentText : Monochrome.accent
                 }
             }
 
@@ -147,7 +138,7 @@ FocusScope {
     component Level: Rectangle {
         id: level
         required property string label
-        required property string glyph
+        required property string iconName
         required property real percent
         readonly property bool dragging: slider.pressed
         property real dragValue: -1
@@ -239,7 +230,7 @@ FocusScope {
                         : 0
                     height: parent.height
                     radius: height / 2
-                    color: root.foreground
+                    color: Monochrome.accent
                 }
             }
 
@@ -248,16 +239,13 @@ FocusScope {
                 width: 0
                 height: slider.height
 
-                Text {
+                StatusIcon {
                     x: 12
                     width: 16
-                    height: parent.height
-                    font.family: root.iconFont
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: level.glyph
-                    color: slider.enabled ? "#000000" : root.secondary
-                    font.pixelSize: 14
+                    height: width
+                    anchors.verticalCenter: parent.verticalCenter
+                    iconName: level.iconName
+                    color: slider.enabled ? Monochrome.accentText : root.secondary
                 }
             }
         }
@@ -338,7 +326,7 @@ FocusScope {
                             width: Math.round((parent.width - 4) * root.batteryFraction)
                             height: parent.height - 4
                             radius: 1
-                            color: root.foreground
+                            color: Monochrome.accent
                         }
                     }
 
@@ -362,7 +350,7 @@ FocusScope {
 
                 Tile {
                     text: "Wi-Fi"
-                    glyph: "\uf1eb"
+                    iconName: Wifi.enabled ? "network-wireless-symbolic" : "network-wireless-disabled-symbolic"
                     active: Wifi.enabled
                     detail: Wifi.status
                     onClicked: root.wifiRequested()
@@ -370,7 +358,7 @@ FocusScope {
 
                 Tile {
                     text: "Focus"
-                    glyph: "\uf05e"
+                    iconName: active ? "user-busy-symbolic" : "user-available-symbolic"
                     active: Notifications.focusEnabled
                     detail: active ? "On" : "Off"
                     onClicked: Notifications.toggleFocus()
@@ -378,7 +366,8 @@ FocusScope {
 
                 Tile {
                     text: "Bluetooth"
-                    glyph: "\uf294"
+                    iconName: !BluetoothControl.enabled ? "bluetooth-disabled-symbolic"
+                        : BluetoothControl.connected.length ? "bluetooth-paired-symbolic" : "bluetooth-active-symbolic"
                     active: BluetoothControl.enabled
                     detail: BluetoothControl.status
                     onClicked: root.bluetoothRequested()
@@ -386,7 +375,7 @@ FocusScope {
 
                 Tile {
                     text: "Night Light"
-                    glyph: "\uf186"
+                    iconName: active ? "night-light-symbolic" : "night-light-disabled-symbolic"
                     active: DashboardControls.nightLight
                     enabled: DashboardControls.nightLightAvailable
                     detail: active ? "On · 4500 K" : enabled ? "Off" : "Requires wlsunset"
@@ -397,7 +386,7 @@ FocusScope {
             Level {
                 id: displayLevel
                 label: "Display"
-                glyph: "\uf185"
+                iconName: "display-brightness-symbolic"
                 percent: DashboardControls.pendingBrightness >= 0 ? DashboardControls.pendingBrightness : DashboardControls.brightness
                 onAdjusted: value => DashboardControls.setBrightness(value)
             }
@@ -405,7 +394,9 @@ FocusScope {
             Level {
                 id: soundLevel
                 label: "Sound"
-                glyph: "\uf028"
+                iconName: DashboardControls.audio?.muted || percent <= 0 ? "audio-volume-muted-symbolic"
+                    : percent < 0.34 ? "audio-volume-low-symbolic"
+                    : percent < 0.67 ? "audio-volume-medium-symbolic" : "audio-volume-high-symbolic"
                 percent: DashboardControls.audio ? DashboardControls.audio.volume * 100 : -1
                 onAdjusted: value => {
                     const audio = DashboardControls.audio;

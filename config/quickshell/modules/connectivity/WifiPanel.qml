@@ -77,7 +77,12 @@ ConnectivityPanel {
                         width: list.width
                         fontFamily: root.textFont.family
                         title: modelData.name
-                        glyph: secured ? "\uf023" : ""
+                        iconName: {
+                            const strength = modelData.signalStrength;
+                            const level = strength > 0.75 ? "excellent" : strength > 0.50 ? "good"
+                                : strength > 0.25 ? "ok" : strength > 0 ? "low" : "none";
+                            return (secured ? "network-wireless-secure-signal-" : "network-wireless-signal-") + level;
+                        }
                         detail: (modelData.connected ? "Connected" : modelData.known ? "Saved"
                             : secured ? "Secured" : "Open") + " · " + Math.round(modelData.signalStrength * 100) + "%"
                         rowAction: modelData.stateChanging || Wifi.pending === modelData

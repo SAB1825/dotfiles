@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import "../theme"
 
 Button {
     id: root
@@ -11,7 +12,7 @@ Button {
     required property string title
     required property string detail
     required property string rowAction
-    property string glyph: ""
+    property string iconName: ""
 
     text: title
     Accessible.description: detail + ", " + rowAction
@@ -29,12 +30,11 @@ Button {
     contentItem: RowLayout {
         spacing: 8
 
-        Text {
-            visible: text !== ""
-            text: root.glyph
+        StatusIcon {
+            Layout.preferredWidth: 16
+            Layout.preferredHeight: 16
+            iconName: root.iconName
             color: "#b0b0b0"
-            font.family: "JetBrainsMono Nerd Font"
-            font.pixelSize: 14
         }
 
         ColumnLayout {

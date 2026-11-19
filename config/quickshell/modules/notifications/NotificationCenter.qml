@@ -4,19 +4,21 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.services
+import "../theme"
 
 Rectangle {
     id: root
 
     required property string fontFamily
-    readonly property color foreground: "#ffffff"
-    readonly property color secondary: "#adadad"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
     readonly property int inset: 14
     readonly property bool empty: Notifications.entries.length === 0
 
     implicitHeight: 208
     radius: 22
-    color: "#121212"
+    color: Monochrome.background
+    border.color: Monochrome.outline
 
     ColumnLayout {
         anchors.fill: parent
@@ -47,14 +49,14 @@ Rectangle {
                 onClicked: Notifications.clearAll()
 
                 background: Rectangle {
-                    color: clear.down ? "#404040" : clear.hovered ? "#303030" : "#222222"
+                    color: clear.down || clear.hovered ? Monochrome.selection : Monochrome.raised
                     radius: height / 2
                     border.color: clear.visualFocus ? root.foreground : "transparent"
                 }
 
                 contentItem: Text {
                     text: clear.text
-                    color: root.foreground
+                    color: clear.down || clear.hovered ? Monochrome.selectionText : root.foreground
                     font.family: root.fontFamily
                     font.pixelSize: 11
                     horizontalAlignment: Text.AlignHCenter
@@ -77,7 +79,7 @@ Rectangle {
                     width: 36
                     height: 36
                     radius: width / 2
-                    color: "#262626"
+                    color: Monochrome.raised
 
                     Text {
                         anchors.centerIn: parent
@@ -112,7 +114,7 @@ Rectangle {
                     padding: 0
                     contentItem: Rectangle {
                         radius: width / 2
-                        color: "#666666"
+                        color: Monochrome.outline
                     }
                 }
 
@@ -124,7 +126,7 @@ Rectangle {
                     width: stack.width - 5
                     height: details.implicitHeight + 16
                     radius: 12
-                    color: "#202020"
+                    color: Monochrome.raised
 
                     ColumnLayout {
                         id: details
@@ -201,7 +203,7 @@ Rectangle {
 
                         background: Rectangle {
                             radius: width / 2
-                            color: dismiss.hovered || dismiss.visualFocus ? "#383838" : "transparent"
+                            color: dismiss.hovered || dismiss.visualFocus ? Monochrome.selection : "transparent"
                         }
 
                         contentItem: Text {

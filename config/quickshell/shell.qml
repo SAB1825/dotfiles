@@ -1,5 +1,6 @@
 //@ pragma ShellId a8378dd81be67723f52193f42f80438c
 //@ pragma Env QSG_RENDER_LOOP=basic
+//@ pragma Env QS_ICON_THEME=Tela-circle-dark
 
 import QtQuick
 import Quickshell

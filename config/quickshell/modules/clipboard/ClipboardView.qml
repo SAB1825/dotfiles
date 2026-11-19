@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../theme"
 
 FocusScope {
     id: root
@@ -9,8 +10,8 @@ FocusScope {
     property bool open: false
     property int selectedIndex: 0
     readonly property real cornerRadius: 30
-    readonly property color foreground: "#c8cde0"
-    readonly property color secondary: "#898e9b"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
     readonly property int rowHeight: 47
     readonly property var results: {
         const query = search.text.trim().toLowerCase();
@@ -101,7 +102,7 @@ FocusScope {
                     height: 12
                     radius: 2
                     color: "transparent"
-                    border.color: root.secondary
+                    border.color: Monochrome.accent
                 }
 
                 Rectangle {
@@ -110,7 +111,7 @@ FocusScope {
                     width: 6
                     height: 4
                     radius: 1
-                    color: root.secondary
+                    color: Monochrome.accent
                 }
             }
 
@@ -133,6 +134,8 @@ FocusScope {
                     bottom: parent.bottom
                 }
                 color: root.foreground
+                selectionColor: Monochrome.accent
+                selectedTextColor: Monochrome.accentText
                 font.family: root.textFont.family
                 font.pixelSize: 14
                 verticalAlignment: Text.AlignVCenter
@@ -149,7 +152,7 @@ FocusScope {
         Rectangle {
             width: parent.width
             height: 1
-            color: "#222326"
+            color: Monochrome.outline
         }
 
         Item { width: 1; height: 10 }
@@ -183,7 +186,7 @@ FocusScope {
                 width: list.width
                 height: root.rowHeight
                 radius: 10
-                color: selected ? "#26282d" : "transparent"
+                color: selected ? Monochrome.selection : "transparent"
 
                 Rectangle {
                     anchors.left: parent.left
@@ -192,7 +195,7 @@ FocusScope {
                     width: 3
                     height: 24
                     radius: 1.5
-                    color: "#99d9d6"
+                    color: Monochrome.accent
                     visible: row.selected
                 }
 
@@ -225,7 +228,7 @@ FocusScope {
                             elide: Text.ElideRight
                             text: row.modelData.title
                             textFormat: Text.PlainText
-                            color: root.foreground
+                            color: selected ? Monochrome.selectionText : root.foreground
                             font.family: root.textFont.family
                             font.pixelSize: 14
                             font.weight: Font.Medium
@@ -237,7 +240,7 @@ FocusScope {
                             elide: Text.ElideRight
                             text: row.modelData.detail
                             textFormat: Text.PlainText
-                            color: root.secondary
+                            color: selected ? Monochrome.selectionText : root.secondary
                             font.family: root.textFont.family
                             font.pixelSize: 12
                         }

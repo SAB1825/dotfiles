@@ -3,19 +3,25 @@ pragma ComponentBehavior: Bound
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "../theme"
 
 FocusScope {
     id: root
 
     required property font textFont
     readonly property real cornerRadius: 30
-    readonly property font launcherFont: Qt.font({
-        family: textFont.family,
+    readonly property font displayFont: Qt.font({
+        family: "SF Compact Display",
+        pixelSize: textFont.pixelSize,
+        weight: Font.Medium
+    })
+    readonly property font bodyFont: Qt.font({
+        family: "SF Compact Text",
         pixelSize: textFont.pixelSize - 2,
         weight: Font.Normal
     })
-    readonly property font secondaryFont: Qt.font({
-        family: textFont.family,
+    readonly property font detailFont: Qt.font({
+        family: "SF Compact Text",
         pixelSize: 12,
         weight: Font.Normal
     })
@@ -118,8 +124,8 @@ FocusScope {
         }
     }
 
-    readonly property color foreground: "#c8cde0"
-    readonly property color secondary: "#898e9b"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
     readonly property int itemH: 47
     implicitWidth: 508
     readonly property int resultsHeight: isSearching && filteredApps.length === 0
@@ -180,7 +186,7 @@ FocusScope {
                         height: 12
                         radius: width / 2
                         color: "transparent"
-                        border.color: root.secondary
+                        border.color: Monochrome.accent
                         border.width: 1
                     }
 
@@ -190,7 +196,7 @@ FocusScope {
                         width: 8
                         height: 2
                         radius: 1
-                        color: root.secondary
+                        color: Monochrome.accent
                         rotation: 45
                         transformOrigin: Item.Left
                     }
@@ -204,7 +210,7 @@ FocusScope {
                         anchors.fill: parent
                         text: "Search…"
                         color: root.secondary
-                        font: root.launcherFont
+                        font: root.bodyFont
                         verticalAlignment: Text.AlignVCenter
                         visible: searchInput.text === ""
                     }
@@ -214,9 +220,9 @@ FocusScope {
                         focus: true
                         anchors.fill: parent
                         color: root.foreground
-                        selectionColor: root.foreground
-                        selectedTextColor: "#000000"
-                        font: root.launcherFont
+                        selectionColor: Monochrome.accent
+                        selectedTextColor: Monochrome.accentText
+                        font: root.bodyFont
                         verticalAlignment: TextInput.AlignVCenter
                         clip: true
 
@@ -248,7 +254,7 @@ FocusScope {
         Rectangle {
             width: parent.width
             height: 1
-            color: "#222326"
+            color: Monochrome.outline
         }
 
         Item { width: 1; height: 10 }
@@ -287,7 +293,7 @@ FocusScope {
                 text: "No apps found"
                 color: root.foreground
                 opacity: root.isSearching && root.filteredApps.length === 0 ? 1 : 0
-                font: root.secondaryFont
+                font: root.bodyFont
 
                 Behavior on opacity {
                     NumberAnimation { duration: 120 }
@@ -305,7 +311,7 @@ FocusScope {
                 Rectangle {
                     anchors.fill: parent
                     radius: 10
-                    color: appRow.sel ? "#191b1f" : "transparent"
+                    color: appRow.sel ? Monochrome.selection : "transparent"
 
                     Rectangle {
                         anchors.left: parent.left
@@ -314,7 +320,7 @@ FocusScope {
                         width: 3
                         height: 24
                         radius: 1.5
-                        color: "#99d9d6"
+                        color: Monochrome.accent
                         visible: appRow.sel
                     }
 
@@ -332,7 +338,7 @@ FocusScope {
                             width: 34
                             height: 34
                             radius: 10
-                            color: appRow.sel ? "#292c33" : "#111317"
+                            color: appRow.sel ? Monochrome.raised : Monochrome.background
                             anchors.verticalCenter: parent.verticalCenter
 
                             Image {
@@ -350,8 +356,8 @@ FocusScope {
                                 anchors.centerIn: parent
                                 visible: appIcon.status !== Image.Ready
                                 text: appRow.modelData.name.charAt(0).toUpperCase()
-                                font: root.launcherFont
-                                color: root.foreground
+                                font: root.displayFont
+                                color: appRow.sel ? Monochrome.selectionText : root.foreground
                             }
                         }
 
@@ -365,10 +371,8 @@ FocusScope {
                                 width: parent.width
                                 elide: Text.ElideRight
                                 text: appRow.modelData.name
-                                font.family: root.launcherFont.family
-                                font.pixelSize: root.launcherFont.pixelSize
-                                font.weight: Font.Medium
-                                color: root.foreground
+                                font: root.displayFont
+                                color: appRow.sel ? Monochrome.selectionText : root.foreground
                             }
 
                             Text {
@@ -376,8 +380,8 @@ FocusScope {
                                 visible: appRow.modelData.genericName !== ""
                                 elide: Text.ElideRight
                                 text: appRow.modelData.genericName
-                                font: root.secondaryFont
-                                color: root.secondary
+                                font: root.detailFont
+                                color: appRow.sel ? Monochrome.selectionText : root.secondary
                             }
                         }
                     }
