@@ -1,6 +1,8 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import qs.services
 
@@ -14,18 +16,34 @@ Item {
 
     readonly property color foreground: "#c8cde0"
     readonly property color secondary: "#898e9b"
-    readonly property var workspaces: NiriWorkspaces.workspaces
-        .filter(workspace => workspace.output === outputName)
-        .sort((a, b) => a.idx - b.idx)
+    readonly property var workspaces: {
+        if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")) {
+            return Hyprland.workspaces.values
+                .filter(workspace => workspace.monitor?.name === root.outputName
+                    && !workspace.name.startsWith("special:") && workspace.name !== "special")
+                .sort((a, b) => a.id - b.id)
+                .map(workspace => ({
+                    number: workspace.id,
+                    active: workspace.active,
+                    occupied: workspace.toplevels.values.length > 0
+                }));
+        }
+
+        return NiriWorkspaces.workspaces
+            .filter(workspace => workspace.output === root.outputName)
+            .sort((a, b) => a.idx - b.idx)
+            .map(workspace => ({
+                number: workspace.idx,
+                active: workspace.is_active,
+                occupied: workspace.active_window_id != null
+            }));
+    }
     readonly property var player: {
         const players = Mpris.players.values;
         return players.find(player => player.playbackState === MprisPlaybackState.Playing && player.trackTitle)
-            ?? players.find(player => player.playbackState === MprisPlaybackState.Paused && player.trackTitle)
             ?? null;
     }
-    readonly property bool playing: player?.playbackState === MprisPlaybackState.Playing
-
-    implicitWidth: 610
+    implicitWidth: player ? 610 : 390
     implicitHeight: 140
     opacity: expanded ? 1 : 0
 
@@ -106,7 +124,7 @@ Item {
             height: 34
             spacing: 9
             visible: opacity > 0
-            opacity: root.player ? (root.playing ? 1 : 0.68) : 0
+            opacity: root.player ? 1 : 0
 
             Behavior on opacity {
                 NumberAnimation { duration: 180 }
@@ -118,7 +136,7 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: root.player ? (root.playing ? "" : "Ⅱ  ") + root.player.trackTitle : ""
+                    text: root.player?.trackTitle ?? ""
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignRight
                     textFormat: Text.PlainText

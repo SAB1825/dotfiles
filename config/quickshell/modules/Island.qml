@@ -7,6 +7,7 @@ import "connectivity"
 import "dashboard"
 import "island"
 import "notifications"
+import "theme"
 import "wallpaper"
 
 // import qs.theme
@@ -16,8 +17,10 @@ import qs.services
 PanelWindow {
     id: island
 
+    signal lockRequested()
+
     readonly property font islandFont: Qt.font({
-        family: "SF Pro",
+        family: "SFMono Nerd Font Mono",
         weight: Font.Bold,
         pixelSize: 16
     })
@@ -30,6 +33,8 @@ PanelWindow {
     readonly property bool notificationOpen: screen === Quickshell.screens[0]
         && !pickerVisible && !Notifications.popupsPaused && Notifications.popup !== null
     property bool hoverExpanded: false
+    property string rightPopup: ""
+    readonly property bool rightPopupOpen: rightPopup !== ""
     readonly property bool glanceOpen: hoverExpanded && !pickerVisible && !notificationOpen
     property string displayedMode: ""
     readonly property Item picker: {
@@ -72,6 +77,8 @@ PanelWindow {
 
     readonly property bool isPlaying: Cava.total !== 0
     property bool visualizerShown: false
+    readonly property real compactWidth: 40 + 2 * Math.max(clockHours.implicitWidth, clockMinutes.implicitWidth)
+        + (visualizerShown ? 8 * Cava.bars - 4 : 4)
 
     onIsPlayingChanged: {
         if (isPlaying)
@@ -95,19 +102,311 @@ PanelWindow {
     // Keep pointer input stable while the painted island changes size.
     mask: Region {
         x: Math.floor((island.width - width) / 2)
-        y: island.pickerOpen ? 0 : island.notificationOpen || island.glanceOpen ? 8 : 3
-        width: Math.ceil(island.pickerOpen ? island.width
+        y: island.pickerOpen || island.rightPopupOpen ? 0 : island.notificationOpen || island.glanceOpen ? 8 : 3
+        width: Math.ceil(island.pickerOpen || island.rightPopupOpen ? island.width
             : Math.min(island.width, island.notificationOpen ? notificationPopup.implicitWidth
-                : island.glanceOpen ? glance.implicitWidth : 210))
-        height: Math.ceil(island.pickerOpen ? island.height
+                : island.glanceOpen ? glance.implicitWidth
+                : Math.max(island.compactWidth, islandReact.width) + 10))
+        height: Math.ceil(island.pickerOpen || island.rightPopupOpen ? island.height
             : island.notificationOpen ? notificationPopup.implicitHeight
             : island.glanceOpen ? glance.implicitHeight : 46)
+
+        Region {
+            intersection: Intersection.Combine
+            x: workspaceMenu.x
+            y: workspaceMenu.y
+            width: workspaceMenu.visible ? workspaceMenu.width : 0
+            height: workspaceMenu.height
+        }
+
+        Region {
+            intersection: Intersection.Combine
+            x: appMenu.x
+            y: appMenu.y
+            width: appMenu.visible ? appMenu.width : 0
+            height: appMenu.height
+        }
+
+        Region {
+            intersection: Intersection.Combine
+            x: rightMenu.x
+            y: rightMenu.y
+            width: rightMenu.visible ? rightMenu.width : 0
+            height: rightMenu.height
+        }
+
     }
     // Keep the layer surface stable while the island animates and takes focus.
     // The input mask keeps the transparent area click-through when closed.
     implicitWidth: screen?.width ?? 508
     implicitHeight: screen?.height ?? 400
     exclusiveZone: Notifications.focusEnabled ? 0 : 44
+
+    Rectangle {
+        id: workspaceMenu
+
+        anchors.left: parent.left
+        anchors.leftMargin: 16
+        y: 8
+        width: workspaceNumbers.width + 12
+        height: 36
+        radius: 14
+        color: "#000000"
+        visible: !island.pickerVisible && !Notifications.focusEnabled
+            && x + width + 12 <= islandReact.x
+
+        Row {
+            id: workspaceNumbers
+            anchors.centerIn: parent
+            spacing: 3
+
+            Repeater {
+                model: 5
+
+                IslandMenuButton {
+                    id: workspaceButton
+
+                    required property int index
+                    readonly property int number: index + 1
+                    readonly property var workspace: glance.workspaces.find(entry => entry.number === number)
+
+                    width: 26
+                    height: 28
+                    topPadding: 3
+                    bottomPadding: 3
+                    text: number.toString()
+                    font.family: island.islandFont.family
+                    Accessible.name: "Workspace " + number
+                    enabled: !!Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE") || !!workspace
+
+                    background: Rectangle {
+                        radius: 7
+                        color: workspaceButton.workspace?.active ? "#ffffff" : "transparent"
+                    }
+
+                    contentItem: Item {
+                        Text {
+                            anchors.centerIn: parent
+                            anchors.verticalCenterOffset: -1
+                            text: workspaceButton.text
+                            font: workspaceButton.font
+                            color: workspaceButton.workspace?.active ? "#000000" : "#ffffff"
+                        }
+
+                        Rectangle {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            width: 10
+                            height: 2
+                            radius: 1
+                            color: workspaceButton.workspace?.active ? "#000000" : "#ffffff"
+                            visible: workspaceButton.workspace?.occupied ?? false
+                        }
+                    }
+
+                    onClicked: {
+                        if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE"))
+                            Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = " + number + " })"]);
+                        else
+                            Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", number.toString()]);
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        id: appMenu
+
+        readonly property string iconDataHome: Quickshell.env("XDG_DATA_HOME")
+            || Quickshell.env("HOME") + "/.local/share"
+
+        anchors.left: workspaceMenu.right
+        anchors.leftMargin: 8
+        y: 8
+        width: shortcuts.width + 12
+        height: shortcuts.height
+        radius: 14
+        color: "#000000"
+        visible: workspaceMenu.visible
+            && x + width + 12 <= islandReact.x
+
+        Row {
+            id: shortcuts
+            anchors.centerIn: parent
+            spacing: 4
+
+            Repeater {
+                model: [
+                    { label: "Brave", icon: "brave-desktop", ids: ["brave-browser", "com.brave.Browser"], command: ["brave"] },
+                    { label: "Kitty", icon: "kitty", ids: ["kitty"], command: ["kitty"] },
+                    { label: "Files", icon: "file-manager", ids: ["org.gnome.Nautilus"], command: ["nautilus"] },
+                    { label: "Code", icon: "visualstudiocode", ids: [], command: ["/usr/bin/code"] }
+                ]
+
+                IslandMenuButton {
+                    required property var modelData
+                    width: 36
+                    height: 36
+                    padding: 7
+                    leftPadding: padding
+                    rightPadding: padding
+                    Accessible.name: modelData.label
+
+                    contentItem: Image {
+                        source: "file://" + appMenu.iconDataHome + "/icons/Tela-circle-dark/scalable/apps/"
+                            + modelData.icon + ".svg"
+                        fillMode: Image.PreserveAspectFit
+                        sourceSize.width: 44
+                        sourceSize.height: 44
+                    }
+
+                    onClicked: {
+                        const entry = modelData.ids.map(id => DesktopEntries.byId(id)).find(entry => entry);
+                        if (entry)
+                            entry.execute();
+                        else
+                            Quickshell.execDetached(modelData.command);
+                    }
+                }
+            }
+        }
+    }
+
+    Row {
+        id: rightMenu
+
+        z: island.rightPopupOpen ? 2 : 0
+        anchors.right: parent.right
+        anchors.rightMargin: 16
+        y: 8
+        spacing: 8
+        visible: !island.pickerVisible && !Notifications.focusEnabled
+            && x >= islandReact.x + islandReact.width + 12
+        onVisibleChanged: {
+            if (!visible)
+                island.rightPopup = "";
+        }
+
+        Rectangle {
+            id: statusMenu
+            width: dateButton.width + 8
+            height: 36
+            radius: 14
+            color: "#000000"
+
+            IslandMenuButton {
+                id: dateButton
+                anchors.centerIn: parent
+                height: 36
+                font.family: island.islandFont.family
+                text: Time.menuDate
+                checkable: true
+                checked: island.rightPopup === "calendar"
+                Accessible.name: text + ", toggle calendar"
+                onClicked: island.rightPopup = island.rightPopup === "calendar" ? "" : "calendar"
+            }
+        }
+
+        Rectangle {
+            width: systemControls.width
+            height: 36
+            radius: 14
+            color: "#000000"
+
+            Row {
+                id: systemControls
+                anchors.centerIn: parent
+
+                Item {
+                    id: batteryMenu
+                    readonly property int percentage: Math.round((DashboardControls.battery?.percentage ?? 0) * 100)
+                    readonly property int iconLevel: Math.max(0, Math.min(100, 10 * Math.round(percentage / 10)))
+
+                    visible: !!DashboardControls.battery?.isLaptopBattery
+                    width: batteryStatus.width + 20
+                    height: 36
+
+                    Row {
+                        id: batteryStatus
+                        anchors.centerIn: parent
+                        spacing: 6
+
+                        StatusIcon {
+                            anchors.verticalCenter: parent.verticalCenter
+                            iconName: "battery-level-" + batteryMenu.iconLevel
+                                + (DashboardControls.onBattery ? "" : "-plugged-in") + "-symbolic"
+                        }
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: batteryMenu.percentage + "%"
+                            font.family: island.islandFont.family
+                            font.pixelSize: 13
+                            color: "#f5f5f5"
+                        }
+                    }
+                }
+
+                Item {
+                    width: 40
+                    height: 36
+
+                    IslandMenuButton {
+                        anchors.fill: parent
+                        Accessible.name: "Session menu"
+                        checkable: true
+                        checked: island.rightPopup === "session"
+                        onClicked: island.rightPopup = island.rightPopup === "session" ? "" : "session"
+
+                        contentItem: Item {
+                            StatusIcon {
+                                anchors.centerIn: parent
+                                iconName: "system-shutdown-symbolic"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        visible: island.rightPopupOpen
+        z: 1
+        onClicked: island.rightPopup = ""
+    }
+
+    MonthCalendar {
+        id: monthCalendar
+
+        x: Math.max(16, rightMenu.x + statusMenu.width - width)
+        anchors.top: rightMenu.bottom
+        anchors.topMargin: 8
+        width: Math.min(344, island.width - 32)
+        fontFamily: island.islandFont.family
+        today: Time.today
+        visible: island.rightPopup === "calendar" && rightMenu.visible
+        z: 2
+    }
+
+    SessionMenu {
+        anchors.right: rightMenu.right
+        anchors.top: rightMenu.bottom
+        anchors.topMargin: 8
+        fontFamily: island.islandFont.family
+        sessionId: Quickshell.env("XDG_SESSION_ID") ?? ""
+        visible: island.rightPopup === "session" && rightMenu.visible
+        z: 2
+        onActionRequested: command => {
+            island.rightPopup = "";
+            if (command.length)
+                Quickshell.execDetached(command);
+            else
+                island.lockRequested();
+        }
+    }
 
     MouseArea {
         id: dismissArea
@@ -125,7 +424,7 @@ PanelWindow {
         scale: (island.pickerVisible || island.notificationOpen || island.glanceOpen) ? 1 : 1 + audioOffset * 0.05
         width: Math.min(island.width, island.pickerOpen ? picker.implicitWidth
             : island.notificationOpen ? notificationPopup.implicitWidth
-            : island.glanceOpen ? glance.implicitWidth : 200)
+            : island.glanceOpen ? glance.implicitWidth : island.compactWidth)
         height: {
             if (island.pickerOpen)
                 return Math.min(picker.implicitHeight,
@@ -272,8 +571,8 @@ PanelWindow {
 
                 Behavior on expansion {
                     NumberAnimation {
-                        duration: 500
-                        easing.type: Easing.OutQuint
+                        duration: 280
+                        easing.type: Easing.OutCubic
                     }
                 }
 
@@ -297,6 +596,7 @@ PanelWindow {
             }
 
             Text {
+                id: clockHours
                 anchors.right: visualizer.left
                 anchors.rightMargin: 8
                 anchors.verticalCenter: parent.verticalCenter
@@ -306,6 +606,7 @@ PanelWindow {
                 font: island.islandFont
             }
             Text {
+                id: clockMinutes
                 anchors.left: visualizer.right
                 anchors.leftMargin: 8
                 anchors.verticalCenter: parent.verticalCenter

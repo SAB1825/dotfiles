@@ -16,11 +16,11 @@ Row {
             required property int index
             readonly property var workspace: root.workspaces[index]
 
-            width: workspace?.is_active ? 22 : 8
+            width: workspace?.active ? 22 : 8
             height: 8
             radius: height / 2
             color: "#ffffff"
-            opacity: workspace?.is_active ? 1 : workspace?.active_window_id != null ? 0.55 : 0.28
+            opacity: workspace?.active ? 1 : workspace?.occupied ? 0.55 : 0.28
 
             Behavior on width {
                 NumberAnimation {

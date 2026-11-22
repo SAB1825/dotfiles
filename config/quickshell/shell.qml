@@ -98,6 +98,7 @@ ShellRoot {
 
             Island {
                 screen: perScreen.modelData
+                onLockRequested: lockScreen.engage()
             }
         }
     }
