@@ -12,6 +12,7 @@ Singleton {
     readonly property string currentPath: activeProcess?.imagePath ?? ""
     readonly property bool busy: candidate !== null
     readonly property bool scanning: scan.running
+    readonly property var paletteColors: palette.roles
     property var entries: []
     property string scanError: ""
     property string applyError: ""
@@ -31,6 +32,7 @@ Singleton {
     }
 
     function start() {
+        palette.reload();
         state.reload();
     }
 
@@ -86,9 +88,26 @@ Singleton {
 
     FileView {
         id: palette
+        property var roles: ({})
+
+        function readColors(contents) {
+            try {
+                const next = JSON.parse(contents)?.colors;
+                if (!/^#[0-9a-f]{6}$/i.test(next?.primary?.dark?.color ?? ""))
+                    return false;
+                palette.roles = next;
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+
         path: Quickshell.stateDir + "/wallpaper-colors.json"
         printErrors: false
         atomicWrites: true
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: readColors(text())
         onSaveFailed: error => console.warn("Couldn't save wallpaper colors:", error)
     }
 
@@ -105,7 +124,7 @@ Singleton {
                 Qt.callLater(() => root.generatePalette(root.currentPath));
                 return;
             }
-            if (code !== 0 || status !== 0 || !colors.text.trim()) {
+            if (code !== 0 || status !== 0 || !palette.readColors(colors.text)) {
                 console.warn("Couldn't generate wallpaper colors:", matugenErrors.text.trim() || "invalid Matugen output");
                 return;
             }

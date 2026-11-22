@@ -13,7 +13,7 @@ IconImage {
 
     readonly property string iconDataHome: Quickshell.env("XDG_DATA_HOME")
         || Quickshell.env("HOME") + "/.local/share"
-    color: "white"
+    color: Monochrome.accent
     width: 16
     height: 16
     sourceSize.width: width

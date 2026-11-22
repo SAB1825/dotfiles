@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import qs.services
+import "../theme"
 
 ConnectivityPanel {
     id: root
@@ -58,10 +59,10 @@ ConnectivityPanel {
                             visible: entry.index === 0
                                 || entry.group !== root.deviceGroup(BluetoothControl.devices[entry.index - 1])
                             text: entry.group
-                            color: "#b0b0b0"
+                            color: Monochrome.muted
                             font.family: root.textFont.family
+                            font.weight: root.textFont.weight
                             font.pixelSize: 12
-                            font.weight: Font.DemiBold
                         }
 
                         RowLayout {
@@ -101,8 +102,9 @@ ConnectivityPanel {
                     visible: list.count === 0
                     text: BluetoothControl.enabled && !BluetoothControl.blocked
                         ? "Looking for nearby devices…" : BluetoothControl.status
-                    color: "#b0b0b0"
+                    color: Monochrome.muted
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 14
                 }
             }
@@ -118,8 +120,9 @@ ConnectivityPanel {
                         : BluetoothControl.promptText || "Waiting for the device…"
                     textFormat: Text.PlainText
                     wrapMode: Text.Wrap
-                    color: "#ffffff"
+                    color: Monochrome.foreground
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 13
                 }
 
@@ -130,9 +133,10 @@ ConnectivityPanel {
                     maximumLength: BluetoothControl.promptKind === "passkey" ? 6 : 16
                     placeholderText: BluetoothControl.promptKind === "passkey" ? "Passkey" : "PIN"
                     Accessible.name: placeholderText
-                    color: "#ffffff"
-                    placeholderTextColor: "#a0a0a0"
+                    color: Monochrome.foreground
+                    placeholderTextColor: Monochrome.muted
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 14
                     leftPadding: 12
                     rightPadding: 12
@@ -142,8 +146,8 @@ ConnectivityPanel {
 
                     background: Rectangle {
                         radius: 10
-                        color: "#202020"
-                        border.color: code.activeFocus ? "#ffffff" : "transparent"
+                        color: Monochrome.background
+                        border.color: code.activeFocus ? Monochrome.foreground : "transparent"
                     }
 
                     onVisibleChanged: {
@@ -193,8 +197,9 @@ ConnectivityPanel {
                 text: BluetoothControl.error
                 textFormat: Text.PlainText
                 wrapMode: Text.Wrap
-                color: "#b0b0b0"
+                color: Monochrome.muted
                 font.family: root.textFont.family
+                font.weight: root.textFont.weight
                 font.pixelSize: 12
             }
         }

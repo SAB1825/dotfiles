@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../theme"
 
 Rectangle {
     id: calendar
@@ -28,8 +29,8 @@ Rectangle {
 
     implicitHeight: content.implicitHeight + 32
     radius: 18
-    color: "#000000"
-    border.color: "#343943"
+    color: Monochrome.background
+    border.color: Monochrome.outline
 
     MouseArea {
         anchors.fill: parent
@@ -57,10 +58,10 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: Qt.formatDate(calendar.monthStart, "MMMM yyyy")
                 elide: Text.ElideRight
-                color: "#f4f5f8"
+                color: Monochrome.foreground
                 font.family: calendar.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 17
-                font.weight: Font.Bold
             }
 
             Row {
@@ -108,8 +109,9 @@ Rectangle {
                     verticalAlignment: Text.AlignVCenter
                     text: calendar.locale.standaloneDayName(
                         (calendar.locale.firstDayOfWeek + index - 1) % 7 + 1, Locale.ShortFormat)
-                    color: "#a4abbc"
+                    color: Monochrome.muted
                     font.family: calendar.fontFamily
+                    font.weight: Typography.weight
                     font.pixelSize: 11
                 }
             }
@@ -134,17 +136,18 @@ Rectangle {
                         width: Math.min(cell.width, 30)
                         height: 30
                         radius: 9
-                        color: "#b6c6ff"
+                        color: Monochrome.accent
                         visible: cell.isToday
                     }
 
                     Text {
                         anchors.centerIn: parent
                         text: cell.day.getDate()
-                        color: cell.isToday ? "#171d31" : cell.inMonth ? "#f4f5f8" : "#777f92"
+                        color: cell.isToday ? Monochrome.accentText : cell.inMonth ? Monochrome.foreground : Monochrome.muted
+                        opacity: cell.inMonth ? 1 : 0.72
                         font.family: calendar.fontFamily
+                        font.weight: Typography.weight
                         font.pixelSize: 13
-                        font.bold: cell.isToday
                     }
                 }
             }

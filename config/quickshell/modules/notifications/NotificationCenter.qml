@@ -34,8 +34,8 @@ Rectangle {
                 text: "Notifications"
                 color: root.foreground
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 13
-                font.weight: Font.DemiBold
             }
 
             Button {
@@ -49,15 +49,16 @@ Rectangle {
                 onClicked: Notifications.clearAll()
 
                 background: Rectangle {
-                    color: clear.down || clear.hovered ? Monochrome.selection : Monochrome.raised
+                    color: Monochrome.background
                     radius: height / 2
-                    border.color: clear.visualFocus ? root.foreground : "transparent"
+                    border.color: clear.down || clear.hovered || clear.visualFocus ? Monochrome.accent : Monochrome.outline
                 }
 
                 contentItem: Text {
                     text: clear.text
                     color: clear.down || clear.hovered ? Monochrome.selectionText : root.foreground
                     font.family: root.fontFamily
+                    font.weight: Typography.weight
                     font.pixelSize: 11
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -95,8 +96,8 @@ Rectangle {
                     text: Notifications.available ? "All caught up" : "Notifications unavailable"
                     color: root.foreground
                     font.family: root.fontFamily
+                    font.weight: Typography.weight
                     font.pixelSize: 13
-                    font.weight: Font.DemiBold
                 }
             }
 
@@ -150,6 +151,7 @@ Rectangle {
                                 textFormat: Text.PlainText
                                 color: root.secondary
                                 font.family: root.fontFamily
+                                font.weight: Typography.weight
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
                             }
@@ -158,6 +160,7 @@ Rectangle {
                                 text: Qt.formatTime(new Date(card.modelData.receivedAt), "hh:mm")
                                 color: root.secondary
                                 font.family: root.fontFamily
+                                font.weight: Typography.weight
                                 font.pixelSize: 11
                             }
                         }
@@ -169,8 +172,8 @@ Rectangle {
                             textFormat: Text.PlainText
                             color: root.foreground
                             font.family: root.fontFamily
+                            font.weight: Typography.weight
                             font.pixelSize: 13
-                            font.weight: Font.DemiBold
                             elide: Text.ElideRight
                         }
 
@@ -181,6 +184,7 @@ Rectangle {
                             textFormat: Text.PlainText
                             color: root.secondary
                             font.family: root.fontFamily
+                            font.weight: Typography.weight
                             font.pixelSize: 12
                             wrapMode: Text.Wrap
                             maximumLineCount: 3
@@ -203,13 +207,15 @@ Rectangle {
 
                         background: Rectangle {
                             radius: width / 2
-                            color: dismiss.hovered || dismiss.visualFocus ? Monochrome.selection : "transparent"
+                            color: "transparent"
+                            border.color: dismiss.hovered || dismiss.visualFocus ? Monochrome.accent : "transparent"
                         }
 
                         contentItem: Text {
                             text: dismiss.text
                             color: root.foreground
                             font.family: root.fontFamily
+                            font.weight: Typography.weight
                             font.pixelSize: 16
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell.Widgets
 import qs.services
+import "../theme"
 
 FocusScope {
     id: root
@@ -12,8 +13,8 @@ FocusScope {
     signal dismissRequested()
 
     readonly property int cornerRadius: 30
-    readonly property color foreground: "#ffffff"
-    readonly property color secondary: "#a8a8a8"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
     readonly property string query: search.text.trim().toLowerCase()
     readonly property var results: query
         ? Wallpaper.entries.filter(entry => entry.searchText.includes(query))
@@ -103,6 +104,7 @@ FocusScope {
             textFormat: Text.PlainText
             color: root.secondary
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 12
         }
 
@@ -117,8 +119,9 @@ FocusScope {
             }
             color: root.foreground
             selectionColor: root.foreground
-            selectedTextColor: "#000000"
+            selectedTextColor: Monochrome.background
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 15
             clip: true
             focus: true
@@ -149,7 +152,7 @@ FocusScope {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1
-            color: "#222222"
+            color: Monochrome.outline
         }
     }
 
@@ -192,9 +195,9 @@ FocusScope {
                 width: Math.max(0, Math.min(slot.width - 12, slot.height * 1.65))
                 height: width / 1.65
                 radius: 15
-                color: "#181818"
+                color: Monochrome.background
                 border.width: slot.selected ? 1 : 0
-                border.color: "#777777"
+                border.color: Monochrome.accent
                 scale: slot.selected ? 1 : slot.distance === 1 ? 0.76 : 0.66
                 opacity: slot.selected ? 1 : slot.distance === 1 ? 0.7 : 0.38
 
@@ -223,7 +226,7 @@ FocusScope {
                     width: 8
                     height: 8
                     radius: 4
-                    color: "#ffffff"
+                    color: Monochrome.foreground
                 }
             }
 
@@ -254,6 +257,7 @@ FocusScope {
             || (root.query ? "No matching wallpapers" : "No images in ~/Pictures/Wallpapers")
         color: root.secondary
         font.family: root.textFont.family
+        font.weight: root.textFont.weight
         font.pixelSize: 14
     }
 
@@ -278,6 +282,7 @@ FocusScope {
             elide: Text.ElideRight
             color: root.secondary
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 12
         }
 
@@ -288,6 +293,7 @@ FocusScope {
             text: (strip.currentIndex + 1) + "/" + root.results.length
             color: root.secondary
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 12
         }
     }

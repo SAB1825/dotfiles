@@ -70,6 +70,7 @@ FocusScope {
     component Caption: Text {
         color: root.secondary
         font.family: root.textFont.family
+        font.weight: root.textFont.weight
         font.pixelSize: 13
         textFormat: Text.PlainText
     }
@@ -90,8 +91,8 @@ FocusScope {
 
         background: Rectangle {
             radius: height / 2
-            color: tile.down || tile.hovered ? root.raised : root.surface
-            border.color: tile.visualFocus ? Monochrome.accent : Monochrome.outline
+            color: root.surface
+            border.color: tile.down || tile.hovered || tile.visualFocus ? Monochrome.accent : Monochrome.outline
         }
 
         contentItem: RowLayout {
@@ -121,7 +122,6 @@ FocusScope {
                     Layout.fillWidth: true
                     text: tile.text
                     color: root.foreground
-                    font.weight: Font.DemiBold
                     elide: Text.ElideRight
                 }
 
@@ -169,7 +169,6 @@ FocusScope {
                 Layout.fillWidth: true
                 text: level.label
                 color: root.foreground
-                font.weight: Font.DemiBold
             }
 
             Caption {
@@ -289,7 +288,6 @@ FocusScope {
                         verticalAlignment: Text.AlignVCenter
                         text: clockButton.text
                         color: root.foreground
-                        font.weight: Font.DemiBold
                     }
                 }
 

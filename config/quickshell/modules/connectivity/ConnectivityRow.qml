@@ -22,9 +22,9 @@ Button {
     implicitHeight: 54
 
     background: Rectangle {
-        color: root.down ? "#303030" : root.hovered ? "#262626" : "#151515"
+        color: Monochrome.background
         radius: 14
-        border.color: root.visualFocus ? "#ffffff" : "transparent"
+        border.color: root.down || root.hovered || root.visualFocus ? Monochrome.accent : Monochrome.outline
     }
 
     contentItem: RowLayout {
@@ -34,7 +34,7 @@ Button {
             Layout.preferredWidth: 16
             Layout.preferredHeight: 16
             iconName: root.iconName
-            color: "#b0b0b0"
+            color: Monochrome.muted
         }
 
         ColumnLayout {
@@ -46,10 +46,10 @@ Button {
                 text: root.title
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
-                color: "#ffffff"
+                color: Monochrome.foreground
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 14
-                font.weight: Font.DemiBold
             }
 
             Text {
@@ -57,8 +57,9 @@ Button {
                 text: root.detail
                 textFormat: Text.PlainText
                 elide: Text.ElideRight
-                color: "#b0b0b0"
+                color: Monochrome.muted
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 12
             }
         }
@@ -66,8 +67,9 @@ Button {
         Text {
             text: root.rowAction
             textFormat: Text.PlainText
-            color: root.enabled ? "#ffffff" : "#b0b0b0"
+            color: root.enabled ? Monochrome.foreground : Monochrome.muted
             font.family: root.fontFamily
+            font.weight: Typography.weight
             font.pixelSize: 12
         }
     }

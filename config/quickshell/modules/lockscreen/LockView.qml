@@ -47,8 +47,8 @@ Item {
         color: Monochrome.accent
         visible: !glass.visible
         renderType: Text.CurveRendering
-        font.family: "SFMono Nerd Font Mono"
-        font.weight: Font.Black
+        font.family: Typography.family
+        font.weight: Typography.weight
         font.pixelSize: root.clockSize
         font.letterSpacing: -root.clockSize * 0.05
         leftPadding: Math.ceil(root.clockSize * 0.07)
@@ -207,6 +207,8 @@ Item {
             passwordMaskDelay: 0
             inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
             color: Monochrome.foreground
+            font.family: Typography.family
+            font.weight: Typography.weight
             font.pixelSize: 17
             cursorVisible: false
             clip: contentWidth > width
@@ -244,6 +246,8 @@ Item {
             visible: text !== ""
             elide: Text.ElideRight
             color: root.busy ? Monochrome.muted : Monochrome.error
+            font.family: Typography.family
+            font.weight: Typography.weight
             font.pixelSize: 13
         }
     }

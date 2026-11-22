@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import "../theme"
 
 Item {
     id: root
@@ -22,12 +23,12 @@ Item {
             Layout.preferredWidth: 36
             Layout.preferredHeight: 36
             radius: width / 2
-            color: "#252525"
+            color: Monochrome.background
 
             Text {
                 anchors.centerIn: parent
                 text: "\uf0a2"
-                color: "#ffffff"
+                color: Monochrome.foreground
                 font.family: "JetBrainsMono Nerd Font"
                 font.pixelSize: 15
             }
@@ -41,8 +42,9 @@ Item {
                 Layout.fillWidth: true
                 text: root.notification?.appName || "Notification"
                 textFormat: Text.PlainText
-                color: "#adadad"
+                color: Monochrome.muted
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
@@ -52,10 +54,10 @@ Item {
                 visible: text !== ""
                 text: root.notification?.summary ?? ""
                 textFormat: Text.PlainText
-                color: "#ffffff"
+                color: Monochrome.foreground
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 14
-                font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
 
@@ -64,8 +66,9 @@ Item {
                 visible: text !== ""
                 text: root.notification?.body ?? ""
                 textFormat: Text.PlainText
-                color: "#adadad"
+                color: Monochrome.muted
                 font.family: root.fontFamily
+                font.weight: Typography.weight
                 font.pixelSize: 12
                 wrapMode: Text.Wrap
                 maximumLineCount: 2

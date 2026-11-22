@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import "../theme"
 
 FocusScope {
     id: root
@@ -52,10 +53,10 @@ FocusScope {
             Text {
                 Layout.fillWidth: true
                 text: root.title
-                color: "#ffffff"
+                color: Monochrome.foreground
                 font.family: root.textFont.family
+                font.weight: root.textFont.weight
                 font.pixelSize: 17
-                font.weight: Font.DemiBold
                 elide: Text.ElideRight
             }
 

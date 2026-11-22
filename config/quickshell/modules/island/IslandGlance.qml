@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import qs.services
+import "../theme"
 
 Item {
     id: root
@@ -14,8 +15,8 @@ Item {
     property bool expanded: false
     signal clockClicked()
 
-    readonly property color foreground: "#c8cde0"
-    readonly property color secondary: "#898e9b"
+    readonly property color foreground: Monochrome.foreground
+    readonly property color secondary: Monochrome.muted
     readonly property var workspaces: {
         if (Quickshell.env("HYPRLAND_INSTANCE_SIGNATURE")) {
             return Hyprland.workspaces.values
@@ -40,9 +41,27 @@ Item {
     }
     readonly property var player: {
         const players = Mpris.players.values;
-        return players.find(player => player.playbackState === MprisPlaybackState.Playing && player.trackTitle)
+        return players.find(player => player.isPlaying)
+            ?? players.find(player => player.playbackState === MprisPlaybackState.Paused && player.trackTitle)
             ?? null;
     }
+    readonly property bool hasPosition: player?.positionSupported ?? false
+    readonly property real duration: player?.lengthSupported ? player.length : 0
+    readonly property real elapsed: hasPosition ? Math.max(0, player.position) : 0
+
+    function formatTrackTime(seconds) {
+        const wholeSeconds = Math.floor(seconds);
+        return Math.floor(wholeSeconds / 60) + ":" + String(wholeSeconds % 60).padStart(2, "0");
+    }
+
+    Timer {
+        running: root.expanded && root.hasPosition && (root.player?.isPlaying ?? false)
+        interval: 1000
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.player?.positionChanged()
+    }
+
     implicitWidth: player ? 610 : 390
     implicitHeight: 140
     opacity: expanded ? 1 : 0
@@ -82,7 +101,7 @@ Item {
             elide: Text.ElideRight
             color: root.foreground
             font.family: root.textFont.family
-            font.weight: Font.Bold
+            font.weight: root.textFont.weight
             font.pixelSize: 36
         }
 
@@ -92,8 +111,8 @@ Item {
             elide: Text.ElideRight
             color: root.secondary
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 14
-            font.weight: Font.Medium
         }
     }
 
@@ -111,8 +130,8 @@ Item {
             rightMargin: Math.min(32, parent.width * 0.065)
             verticalCenter: parent.verticalCenter
         }
-        width: parent.width * 0.39
-        height: 58
+        width: parent.width * 0.43
+        height: 84
 
         Row {
             id: media
@@ -136,13 +155,13 @@ Item {
 
                 Text {
                     width: parent.width
-                    text: root.player?.trackTitle ?? ""
+                    text: root.player?.trackTitle || "Unknown track"
                     elide: Text.ElideRight
                     horizontalAlignment: Text.AlignRight
                     textFormat: Text.PlainText
                     color: root.foreground
                     font.family: root.textFont.family
-                    font.weight: Font.Bold
+                    font.weight: root.textFont.weight
                     font.pixelSize: 13
                 }
 
@@ -155,6 +174,7 @@ Item {
                     textFormat: Text.PlainText
                     color: root.secondary
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 12
                 }
             }
@@ -164,7 +184,7 @@ Item {
                 width: 34
                 height: 34
                 radius: 7
-                color: "#191b1f"
+                color: Monochrome.background
 
                 Text {
                     anchors.centerIn: parent
@@ -186,36 +206,112 @@ Item {
             }
         }
 
-        Rectangle {
+        Item {
+            id: playback
+
             anchors {
                 left: parent.left
                 right: parent.right
                 top: media.bottom
-                topMargin: 7
+                topMargin: 8
             }
-            height: 1
-            color: "#222326"
-            opacity: root.player && root.workspaces.length ? 1 : 0
+            height: 28
+            visible: !!root.player
 
-            Behavior on opacity {
-                NumberAnimation { duration: 180 }
+            Row {
+                id: transport
+                anchors.left: parent.left
+                spacing: 3
+
+                Repeater {
+                    model: [
+                        { glyph: "\uf048", label: "Previous track", enabled: root.player?.canGoPrevious ?? false },
+                        { glyph: root.player?.isPlaying ? "\uf04c" : "\uf04b",
+                            label: root.player?.isPlaying ? "Pause" : "Play",
+                            enabled: root.player?.canTogglePlaying ?? false },
+                        { glyph: "\uf051", label: "Next track", enabled: root.player?.canGoNext ?? false }
+                    ]
+
+                    IslandMenuButton {
+                        id: playbackButton
+
+                        required property int index
+                        required property var modelData
+
+                        width: 28
+                        leftPadding: 0
+                        rightPadding: 0
+                        text: modelData.glyph
+                        font.family: root.textFont.family
+                        font.weight: root.textFont.weight
+                        Accessible.name: modelData.label
+                        enabled: root.expanded && modelData.enabled
+                        opacity: enabled ? 1 : 0.35
+
+                        contentItem: Text {
+                            text: modelData.glyph
+                            font: playbackButton.font
+                            color: root.foreground
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        onClicked: {
+                            switch (index) {
+                            case 0: root.player?.previous(); break;
+                            case 1: root.player?.togglePlaying(); break;
+                            case 2: root.player?.next(); break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Text {
+                anchors.left: transport.right
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                horizontalAlignment: Text.AlignRight
+                elide: Text.ElideLeft
+                visible: root.hasPosition
+                text: root.formatTrackTime(root.elapsed)
+                    + (root.duration > 0 ? " / " + root.formatTrackTime(root.duration) : "")
+                font.family: root.textFont.family
+                font.weight: root.textFont.weight
+                font.pixelSize: 12
+                color: root.secondary
             }
         }
 
-        WorkspaceIndicators {
+        Rectangle {
             anchors {
+                left: parent.left
                 right: parent.right
-                verticalCenter: parent.verticalCenter
-                verticalCenterOffset: root.player ? 23 : 0
+                top: playback.bottom
+                topMargin: 6
             }
-            workspaces: root.workspaces
+            height: 2
+            radius: 1
+            color: Monochrome.outline
+            visible: root.hasPosition && root.duration > 0
 
-            Behavior on anchors.verticalCenterOffset {
-                NumberAnimation {
-                    duration: 240
-                    easing.type: Easing.OutCubic
-                }
+            Rectangle {
+                width: root.duration > 0 ? parent.width * Math.min(1, root.elapsed / root.duration) : 0
+                height: parent.height
+                radius: parent.radius
+                color: root.foreground
             }
+        }
+
+        Text {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            visible: !root.player
+            text: "No media playing"
+            font.family: root.textFont.family
+            font.weight: root.textFont.weight
+            font.pixelSize: 12
+            color: root.secondary
         }
     }
 }

@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Networking
 import qs.services
+import "../theme"
 
 ConnectivityPanel {
     id: root
@@ -100,8 +101,9 @@ ConnectivityPanel {
                     horizontalAlignment: Text.AlignHCenter
                     visible: list.count === 0
                     text: !Wifi.available || Wifi.blocked || !Wifi.enabled ? Wifi.status : "Looking for networks…"
-                    color: "#b0b0b0"
+                    color: Monochrome.muted
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 14
                 }
             }
@@ -127,8 +129,9 @@ ConnectivityPanel {
                         Layout.fillWidth: true
                         text: "Password for " + (root.passwordNetwork?.name ?? "")
                         textFormat: Text.PlainText
-                        color: "#ffffff"
+                        color: Monochrome.foreground
                         font.family: root.textFont.family
+                        font.weight: root.textFont.weight
                         font.pixelSize: 13
                         elide: Text.ElideRight
                     }
@@ -139,9 +142,10 @@ ConnectivityPanel {
                         echoMode: TextInput.Password
                         placeholderText: "Wi-Fi password"
                         Accessible.name: placeholderText
-                        color: "#ffffff"
-                        placeholderTextColor: "#a0a0a0"
+                        color: Monochrome.foreground
+                        placeholderTextColor: Monochrome.muted
                         font.family: root.textFont.family
+                        font.weight: root.textFont.weight
                         font.pixelSize: 14
                         leftPadding: 12
                         rightPadding: 12
@@ -149,8 +153,8 @@ ConnectivityPanel {
 
                         background: Rectangle {
                             radius: 10
-                            color: "#202020"
-                            border.color: password.activeFocus ? "#ffffff" : "transparent"
+                            color: Monochrome.background
+                            border.color: password.activeFocus ? Monochrome.foreground : "transparent"
                         }
 
                         Component.onCompleted: forceActiveFocus()
@@ -184,8 +188,9 @@ ConnectivityPanel {
                     text: Wifi.error || root.notice
                     textFormat: Text.PlainText
                     wrapMode: Text.Wrap
-                    color: "#b0b0b0"
+                    color: Monochrome.muted
                     font.family: root.textFont.family
+                    font.weight: root.textFont.weight
                     font.pixelSize: 12
                 }
 

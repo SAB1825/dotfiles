@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls
+import "../theme"
 
 Button {
     id: root
@@ -14,14 +15,15 @@ Button {
 
     background: Rectangle {
         radius: height / 2
-        color: root.down ? "#404040" : root.hovered ? "#303030" : "#222222"
-        border.color: root.visualFocus ? "#ffffff" : "transparent"
+        color: Monochrome.background
+        border.color: root.down || root.hovered || root.visualFocus ? Monochrome.accent : Monochrome.outline
     }
 
     contentItem: Text {
         text: root.text
-        color: root.enabled ? "#ffffff" : "#777777"
+        color: root.enabled ? Monochrome.foreground : Monochrome.muted
         font.family: root.fontFamily
+        font.weight: Typography.weight
         font.pixelSize: 13
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

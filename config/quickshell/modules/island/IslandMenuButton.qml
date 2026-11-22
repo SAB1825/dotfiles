@@ -1,25 +1,33 @@
 import QtQuick
 import QtQuick.Controls
+import "../theme"
 
 Button {
     id: button
+
+    readonly property bool pointerHovered: hoverArea.containsMouse
 
     height: 28
     leftPadding: 10
     rightPadding: 10
     font.pixelSize: 13
-    font.weight: Font.Medium
+    font.family: Typography.family
+    font.weight: Typography.weight
 
     contentItem: Text {
         text: button.text
         font: button.font
-        color: "#f5f5f5"
+        color: Monochrome.foreground
         verticalAlignment: Text.AlignVCenter
     }
 
     background: null
 
-    HoverHandler {
+    MouseArea {
+        id: hoverArea
+        anchors.fill: parent
+        acceptedButtons: Qt.NoButton
+        hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
     }
 }

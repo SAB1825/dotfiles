@@ -20,8 +20,8 @@ PanelWindow {
     signal lockRequested()
 
     readonly property font islandFont: Qt.font({
-        family: "SFMono Nerd Font Mono",
-        weight: Font.Bold,
+        family: Typography.family,
+        weight: Typography.weight,
         pixelSize: 16
     })
 
@@ -33,8 +33,7 @@ PanelWindow {
     readonly property bool notificationOpen: screen === Quickshell.screens[0]
         && !pickerVisible && !Notifications.popupsPaused && Notifications.popup !== null
     property bool hoverExpanded: false
-    property string rightPopup: ""
-    readonly property bool rightPopupOpen: rightPopup !== ""
+    property bool sessionOpen: false
     readonly property bool glanceOpen: hoverExpanded && !pickerVisible && !notificationOpen
     property string displayedMode: ""
     readonly property Item picker: {
@@ -102,12 +101,12 @@ PanelWindow {
     // Keep pointer input stable while the painted island changes size.
     mask: Region {
         x: Math.floor((island.width - width) / 2)
-        y: island.pickerOpen || island.rightPopupOpen ? 0 : island.notificationOpen || island.glanceOpen ? 8 : 3
-        width: Math.ceil(island.pickerOpen || island.rightPopupOpen ? island.width
+        y: island.pickerOpen || island.sessionOpen ? 0 : island.notificationOpen || island.glanceOpen ? 8 : 3
+        width: Math.ceil(island.pickerOpen || island.sessionOpen ? island.width
             : Math.min(island.width, island.notificationOpen ? notificationPopup.implicitWidth
                 : island.glanceOpen ? glance.implicitWidth
                 : Math.max(island.compactWidth, islandReact.width) + 10))
-        height: Math.ceil(island.pickerOpen || island.rightPopupOpen ? island.height
+        height: Math.ceil(island.pickerOpen || island.sessionOpen ? island.height
             : island.notificationOpen ? notificationPopup.implicitHeight
             : island.glanceOpen ? glance.implicitHeight : 46)
 
@@ -151,7 +150,7 @@ PanelWindow {
         width: workspaceNumbers.width + 12
         height: 36
         radius: 14
-        color: "#000000"
+        color: Monochrome.background
         visible: !island.pickerVisible && !Notifications.focusEnabled
             && x + width + 12 <= islandReact.x
 
@@ -169,6 +168,7 @@ PanelWindow {
                     required property int index
                     readonly property int number: index + 1
                     readonly property var workspace: glance.workspaces.find(entry => entry.number === number)
+                    readonly property bool activeWorkspace: workspace?.active ?? false
 
                     width: 26
                     height: 28
@@ -181,7 +181,7 @@ PanelWindow {
 
                     background: Rectangle {
                         radius: 7
-                        color: workspaceButton.workspace?.active ? "#ffffff" : "transparent"
+                        color: workspaceButton.activeWorkspace ? Monochrome.accent : "transparent"
                     }
 
                     contentItem: Item {
@@ -190,7 +190,8 @@ PanelWindow {
                             anchors.verticalCenterOffset: -1
                             text: workspaceButton.text
                             font: workspaceButton.font
-                            color: workspaceButton.workspace?.active ? "#000000" : "#ffffff"
+                            color: workspaceButton.activeWorkspace ? Monochrome.background
+                                : workspaceButton.workspace?.occupied ? Monochrome.foreground : Monochrome.muted
                         }
 
                         Rectangle {
@@ -199,7 +200,7 @@ PanelWindow {
                             width: 10
                             height: 2
                             radius: 1
-                            color: workspaceButton.workspace?.active ? "#000000" : "#ffffff"
+                            color: workspaceButton.activeWorkspace ? Monochrome.background : Monochrome.accent
                             visible: workspaceButton.workspace?.occupied ?? false
                         }
                     }
@@ -224,34 +225,48 @@ PanelWindow {
         anchors.left: workspaceMenu.right
         anchors.leftMargin: 8
         y: 8
-        width: shortcuts.width + 12
+        width: shortcuts.width + 8
         height: shortcuts.height
         radius: 14
-        color: "#000000"
+        color: Monochrome.background
         visible: workspaceMenu.visible
             && x + width + 12 <= islandReact.x
 
         Row {
             id: shortcuts
             anchors.centerIn: parent
-            spacing: 4
 
             Repeater {
                 model: [
                     { label: "Brave", icon: "brave-desktop", ids: ["brave-browser", "com.brave.Browser"], command: ["brave"] },
                     { label: "Kitty", icon: "kitty", ids: ["kitty"], command: ["kitty"] },
                     { label: "Files", icon: "file-manager", ids: ["org.gnome.Nautilus"], command: ["nautilus"] },
-                    { label: "Code", icon: "visualstudiocode", ids: [], command: ["/usr/bin/code"] }
+                    { label: "Code", icon: "visualstudiocode", ids: [], command: ["/usr/bin/code"] },
+                    { label: "Vesktop", icon: "vesktop", ids: ["vesktop", "dev.vencord.Vesktop"], command: ["vesktop"] }
                 ]
 
                 IslandMenuButton {
+                    id: appButton
+
+                    required property int index
                     required property var modelData
                     width: 36
                     height: 36
-                    padding: 7
+                    padding: 5
                     leftPadding: padding
                     rightPadding: padding
                     Accessible.name: modelData.label
+
+                    background: Item {
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 1
+                            height: 14
+                            color: Monochrome.outline
+                            visible: appButton.index > 0
+                        }
+                    }
 
                     contentItem: Image {
                         source: "file://" + appMenu.iconDataHome + "/icons/Tela-circle-dark/scalable/apps/"
@@ -259,6 +274,14 @@ PanelWindow {
                         fillMode: Image.PreserveAspectFit
                         sourceSize.width: 44
                         sourceSize.height: 44
+                        scale: appButton.pointerHovered ? 1.25 : 1
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 160
+                                easing.type: Easing.OutCubic
+                            }
+                        }
                     }
 
                     onClicked: {
@@ -276,7 +299,7 @@ PanelWindow {
     Row {
         id: rightMenu
 
-        z: island.rightPopupOpen ? 2 : 0
+        z: island.sessionOpen ? 2 : 0
         anchors.right: parent.right
         anchors.rightMargin: 16
         y: 8
@@ -285,34 +308,21 @@ PanelWindow {
             && x >= islandReact.x + islandReact.width + 12
         onVisibleChanged: {
             if (!visible)
-                island.rightPopup = "";
+                island.sessionOpen = false;
+        }
+
+        SystemMonitor {
+            id: systemMonitor
+            visible: island.width - rightMenu.anchors.rightMargin - systemModule.width - rightMenu.spacing - width
+                >= islandReact.x + islandReact.width + 12
         }
 
         Rectangle {
-            id: statusMenu
-            width: dateButton.width + 8
-            height: 36
-            radius: 14
-            color: "#000000"
-
-            IslandMenuButton {
-                id: dateButton
-                anchors.centerIn: parent
-                height: 36
-                font.family: island.islandFont.family
-                text: Time.menuDate
-                checkable: true
-                checked: island.rightPopup === "calendar"
-                Accessible.name: text + ", toggle calendar"
-                onClicked: island.rightPopup = island.rightPopup === "calendar" ? "" : "calendar"
-            }
-        }
-
-        Rectangle {
+            id: systemModule
             width: systemControls.width
             height: 36
             radius: 14
-            color: "#000000"
+            color: Monochrome.background
 
             Row {
                 id: systemControls
@@ -342,8 +352,9 @@ PanelWindow {
                             anchors.verticalCenter: parent.verticalCenter
                             text: batteryMenu.percentage + "%"
                             font.family: island.islandFont.family
+                            font.weight: island.islandFont.weight
                             font.pixelSize: 13
-                            color: "#f5f5f5"
+                            color: Monochrome.foreground
                         }
                     }
                 }
@@ -356,8 +367,8 @@ PanelWindow {
                         anchors.fill: parent
                         Accessible.name: "Session menu"
                         checkable: true
-                        checked: island.rightPopup === "session"
-                        onClicked: island.rightPopup = island.rightPopup === "session" ? "" : "session"
+                        checked: island.sessionOpen
+                        onClicked: island.sessionOpen = !island.sessionOpen
 
                         contentItem: Item {
                             StatusIcon {
@@ -373,22 +384,9 @@ PanelWindow {
 
     MouseArea {
         anchors.fill: parent
-        visible: island.rightPopupOpen
+        visible: island.sessionOpen
         z: 1
-        onClicked: island.rightPopup = ""
-    }
-
-    MonthCalendar {
-        id: monthCalendar
-
-        x: Math.max(16, rightMenu.x + statusMenu.width - width)
-        anchors.top: rightMenu.bottom
-        anchors.topMargin: 8
-        width: Math.min(344, island.width - 32)
-        fontFamily: island.islandFont.family
-        today: Time.today
-        visible: island.rightPopup === "calendar" && rightMenu.visible
-        z: 2
+        onClicked: island.sessionOpen = false
     }
 
     SessionMenu {
@@ -397,10 +395,10 @@ PanelWindow {
         anchors.topMargin: 8
         fontFamily: island.islandFont.family
         sessionId: Quickshell.env("XDG_SESSION_ID") ?? ""
-        visible: island.rightPopup === "session" && rightMenu.visible
+        visible: island.sessionOpen && rightMenu.visible
         z: 2
         onActionRequested: command => {
-            island.rightPopup = "";
+            island.sessionOpen = false;
             if (command.length)
                 Quickshell.execDetached(command);
             else
@@ -434,7 +432,7 @@ PanelWindow {
             return island.glanceOpen ? glance.implicitHeight : 36;
         }
         radius: island.pickerOpen ? picker.cornerRadius : island.notificationOpen || island.glanceOpen ? 30 : 14
-        color: "#000000"
+        color: Monochrome.background
         clip: true
 
         Behavior on width {
@@ -589,7 +587,7 @@ PanelWindow {
                         width: 4
                         height: Math.max(4, (Cava.levels[index] ?? 0) * 24)
                         radius: 2
-                        color: "#FF0000"
+                        color: Monochrome.accent
                         opacity: firstBar || lastBar ? 1 : visualizer.expansion
                     }
                 }
@@ -602,7 +600,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.verticalCenterOffset: 1
                 text: Time.hours
-                color: "#FFFFFF"
+                color: Monochrome.foreground
                 font: island.islandFont
             }
             Text {
@@ -612,7 +610,7 @@ PanelWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.verticalCenterOffset: 1
                 text: Time.minutes
-                color: "#FFFFFF"
+                color: Monochrome.foreground
                 font: island.islandFont
             }
         }

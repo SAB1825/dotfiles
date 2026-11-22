@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../theme"
 
 Rectangle {
     id: menu
@@ -12,8 +13,8 @@ Rectangle {
     width: 152
     height: actions.implicitHeight + 16
     radius: 14
-    color: "#000000"
-    border.color: "#343943"
+    color: Monochrome.background
+    border.color: Monochrome.outline
 
     MouseArea {
         anchors.fill: parent

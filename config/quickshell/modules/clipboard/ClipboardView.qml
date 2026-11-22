@@ -137,6 +137,7 @@ FocusScope {
                 selectionColor: Monochrome.accent
                 selectedTextColor: Monochrome.accentText
                 font.family: root.textFont.family
+                font.weight: root.textFont.weight
                 font.pixelSize: 14
                 verticalAlignment: Text.AlignVCenter
                 clip: true
@@ -164,6 +165,7 @@ FocusScope {
             text: root.status
             color: root.secondary
             font.family: root.textFont.family
+            font.weight: root.textFont.weight
             font.pixelSize: 13
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -230,8 +232,8 @@ FocusScope {
                             textFormat: Text.PlainText
                             color: selected ? Monochrome.selectionText : root.foreground
                             font.family: root.textFont.family
+                            font.weight: root.textFont.weight
                             font.pixelSize: 14
-                            font.weight: Font.Medium
                         }
 
                         Text {
@@ -242,6 +244,7 @@ FocusScope {
                             textFormat: Text.PlainText
                             color: selected ? Monochrome.selectionText : root.secondary
                             font.family: root.textFont.family
+                            font.weight: root.textFont.weight
                             font.pixelSize: 12
                         }
                     }
