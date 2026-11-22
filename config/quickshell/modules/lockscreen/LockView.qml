@@ -47,7 +47,7 @@ Item {
         color: Monochrome.accent
         visible: !glass.visible
         renderType: Text.CurveRendering
-        font.family: "SF Pro Rounded"
+        font.family: "SFMono Nerd Font Mono"
         font.weight: Font.Black
         font.pixelSize: root.clockSize
         font.letterSpacing: -root.clockSize * 0.05

@@ -11,17 +11,17 @@ FocusScope {
     required property font textFont
     readonly property real cornerRadius: 30
     readonly property font displayFont: Qt.font({
-        family: "SF Compact Display",
+        family: "SFMono Nerd Font Mono",
         pixelSize: textFont.pixelSize,
         weight: Font.Medium
     })
     readonly property font bodyFont: Qt.font({
-        family: "SF Compact Text",
+        family: "SFMono Nerd Font Mono",
         pixelSize: textFont.pixelSize - 2,
         weight: Font.Normal
     })
     readonly property font detailFont: Qt.font({
-        family: "SF Compact Text",
+        family: "SFMono Nerd Font Mono",
         pixelSize: 12,
         weight: Font.Normal
     })
