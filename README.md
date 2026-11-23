@@ -2,7 +2,7 @@
 
 A monochrome Arch Linux desktop with Hyprland, a custom Quickshell shell, and a terminal-based workflow.
 
-[![Arch Linux desktop showing Fastfetch with a custom Gojo image](assets/fastfetch.jpg)](assets/fastfetch.jpg)
+![Hyprland desktop](assets/desktop.png)
 
 ## Desktop showcase
 
@@ -12,7 +12,11 @@ A monochrome Arch Linux desktop with Hyprland, a custom Quickshell shell, and a 
 
 The Quickshell island brings together workspaces, an app launcher, clipboard history, a dashboard, notifications, connectivity controls, and a wallpaper picker.
 
-[![Neovim and tmux with split panes and a monochrome status line](assets/tmux%26nvim.jpg)](assets/tmux%26nvim.jpg)
+![Neovim and tmux](assets/nvim.png)
+
+![Quickshell island](assets/island_croped.gif)
+
+[App launcher](assets/app_launcher.png) · [Wallpaper picker](assets/wallpaper_picker.png) · [Terminal tools](assets/tools.png)
 
 Neovim and tmux share a transparent, monochrome setup.
 
@@ -20,9 +24,9 @@ Neovim and tmux share a transparent, monochrome setup.
 
 | Component | Config |
 | --- | --- |
-| Compositor | [Hyprland integration](config/hypr/quickshell.lua) · [niri config](config/niri/config.kdl) |
+| Compositor | [Hyprland](config/hypr/hyprland.lua) |
 | Desktop shell | [Quickshell](config/quickshell/shell.qml) |
-| Terminals | [Kitty](config/kitty/) · [Alacritty](config/alacritty/) |
+| Terminals | [Kitty](config/kitty/) |
 | Editor | [Neovim](config/nvim/) · [Code - OSS](config/Code%20-%20OSS/User/settings.json) |
 | Multiplexer | [tmux](config/tmux/) |
 | System info | [Fastfetch](config/fastfetch/) |
@@ -34,7 +38,7 @@ Install Quickshell and the packages used by the Hyprland setup. The Lua
 integration uses Hyprland 0.55 or newer.
 
 ~~~sh
-sudo pacman -Syu --needed hyprland quickshell kitty \
+sudo pacman -Syu --needed hyprland quickshell kitty starship python adwaita-icon-theme \
   wl-clipboard cliphist imagemagick swaybg matugen cava brightnessctl wlsunset \
   networkmanager nm-connection-editor bluez bluez-utils upower \
   pipewire pipewire-pulse wireplumber ttf-jetbrains-mono-nerd ttf-cascadia-code-nerd
@@ -57,20 +61,21 @@ sudo pacman -Syu --needed neovim base-devel git curl tar tree-sitter-cli wl-clip
 
 ### Activate the configs
 
-From the repository root, move any existing `quickshell` and `nvim`
-configs out of your config directory before linking. Changes to linked files
-apply directly to the active setup.
+From the repository root, move any existing configs you plan to replace out
+of your config directory before linking. Edits to linked files apply directly
+to the active setup. Review the monitor layout in
+[monitors.lua](config/hypr/conf/monitors.lua) before activating the Hyprland config.
 
 ~~~sh
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
-mkdir -p "$config_home/hypr"
-for config in quickshell nvim; do
+mkdir -p "$config_home"
+for config in bash hypr kitty quickshell nvim tmux; do
   ln -sT -- "$PWD/config/$config" "$config_home/$config"
 done
-ln -sT -- "$PWD/config/hypr/quickshell.lua" "$config_home/hypr/quickshell.lua"
 ~~~
 
-Add this line to your existing `hypr/hyprland.lua`:
+If you keep your own Hyprland config, link `config/hypr/quickshell.lua`
+into your Hyprland config directory and load it from `hyprland.lua`:
 
 ~~~lua
 dofile((os.getenv("XDG_CONFIG_HOME") or os.getenv("HOME") .. "/.config") .. "/hypr/quickshell.lua")
@@ -96,11 +101,59 @@ nvim --headless -u NONE -l config/nvim/scripts/bootstrap.lua
 
 Open `nvim` to install the Treesitter parsers. Use `:Mason` for additional tools.
 
+### Wallpaper colors
+
+Select a wallpaper in Quickshell before setting up the watcher. From the
+repository root, move any existing Matugen config and conflicting destination
+files aside before running these commands. The watcher instance uses the
+running Quickshell configuration’s shell ID.
+
+~~~sh
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+unit_dir="$config_home/systemd/user"
+mkdir -p "$unit_dir"
+
+ln -sT -- "$PWD/config/matugen" "$config_home/matugen"
+for unit in path service; do
+  ln -sT -- "$PWD/config/systemd/user/matugen-wallpaper@.$unit" \
+    "$unit_dir/matugen-wallpaper@.$unit"
+done
+
+shell_id=$(quickshell list -j | python3 -c 'import json, sys; print(json.load(sys.stdin)[0]["shell_id"])')
+wallpaper_state="$state_home/quickshell/by-shell/$shell_id/wallpaper.json"
+instance=$(systemd-escape --path "$wallpaper_state")
+systemctl --user daemon-reload
+systemctl --user enable --now "matugen-wallpaper@$instance.path"
+systemctl --user start "matugen-wallpaper@$instance.service"
+~~~
+
+If you're migrating from the old `matugen-wallpaper.path` unit, disable it
+before enabling the new instance.
+
+Link the generated Starship and Fastfetch configs and the folder icon theme
+after generation succeeds. Adjust the existing GTK settings if you already
+have files at those destinations.
+
+~~~sh
+icon_dir="${XDG_DATA_HOME:-$HOME/.local/share}/icons"
+mkdir -p "$icon_dir" "$config_home/fastfetch" "$config_home/gtk-3.0" "$config_home/gtk-4.0"
+ln -sT -- matugen/generated/starship.toml "$config_home/starship.toml"
+ln -sT -- ../matugen/generated/fastfetch.jsonc "$config_home/fastfetch/config.jsonc"
+ln -sT -- "$PWD/config/fastfetch/gojo.png" "$config_home/fastfetch/gojo.png"
+ln -sT -- "$config_home/matugen/generated/icons/Matugen-Folders" "$icon_dir/Matugen-Folders"
+for gtk in gtk-3.0 gtk-4.0; do
+  ln -sT -- "$PWD/config/$gtk/settings.ini" "$config_home/$gtk/settings.ini"
+  ln -sT -- "../matugen/generated/$gtk/gtk.css" "$config_home/$gtk/gtk.css"
+done
+~~~
+
 ## Other configs
 
 - **tmux:** run `git submodule update --init` from this repository to initialize plugins.
 - **Code - OSS:** install One Dark Pro, Material Icon Theme, Material Product Icons, and Vim from the Extensions view.
-- **Zsh and Fastfetch:** included as source configs; activation is manual.
+- **Zsh and standalone Fastfetch:** activate manually.
+- **Rishot:** install it at `~/.local/bin/rishot` for the Hyprland `Super + S` binding and link `config/rishot` to `~/.config/rishot`.
 
 <details>
 <summary>Everyday shortcuts</summary>
