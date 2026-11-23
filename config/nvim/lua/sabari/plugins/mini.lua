@@ -60,32 +60,69 @@ require("mini.completion").setup({
     },
 })
 
--- Clear menu backgrounds while keeping the selected row opaque.
+local matugen = require("sabari.core.matugen")
+
+-- Keep the menu transparent with an opaque selected row.
 local function completion_highlights()
+    local colors = matugen.colors or {}
+    local foregrounds = {
+        Pmenu = colors.on_surface,
+        PmenuKind = colors.secondary,
+        PmenuExtra = colors.on_surface_variant,
+        PmenuMatch = colors.primary,
+    }
     for _, group in ipairs({ "Pmenu", "PmenuKind", "PmenuExtra", "PmenuMatch", "PmenuSbar" }) do
         local highlight = vim.api.nvim_get_hl(0, { name = group, link = false })
+        highlight.fg = foregrounds[group] or highlight.fg
         highlight.bg = nil
         highlight.ctermbg = nil
         vim.api.nvim_set_hl(0, group, highlight)
     end
 
     local selected = vim.api.nvim_get_hl(0, { name = "PmenuSel", link = false })
-    selected.bg = selected.bg or "#303030"
-    selected.fg = selected.fg or "#c6c6c6"
+    selected.bg = colors.primary or selected.bg or "#303030"
+    selected.fg = colors.on_primary or selected.fg or "#c6c6c6"
     vim.api.nvim_set_hl(0, "PmenuSel", selected)
     for _, group in ipairs({ "PmenuKindSel", "PmenuExtraSel", "PmenuMatchSel" }) do
         local highlight = vim.api.nvim_get_hl(0, { name = group, link = false })
+        highlight.fg = colors.on_primary or highlight.fg
         highlight.bg = selected.bg
         highlight.ctermbg = nil
         vim.api.nvim_set_hl(0, group, highlight)
     end
+
+    if colors.outline then
+        vim.api.nvim_set_hl(0, "PmenuThumb", { bg = colors.outline })
+        vim.api.nvim_set_hl(0, "PmenuBorder", { fg = colors.outline })
+    end
+    vim.api.nvim_set_hl(0, "MiniCompletionMatugenNormal", colors.on_surface
+        and { fg = colors.on_surface } or { link = "NormalFloat" })
+    vim.api.nvim_set_hl(0, "MiniCompletionMatugenBorder", colors.outline
+        and { fg = colors.outline } or { link = "FloatBorder" })
 end
 
 vim.opt.pumblend = 0
+if vim.fn.exists("+pumborder") == 1 then
+    vim.opt.pumborder = "single"
+end
 completion_highlights()
+local completion_appearance = vim.api.nvim_create_augroup("CompletionAppearance", { clear = true })
 vim.api.nvim_create_autocmd("ColorScheme", {
-    group = vim.api.nvim_create_augroup("CompletionAppearance", { clear = true }),
+    group = completion_appearance,
     callback = completion_highlights,
+})
+vim.api.nvim_create_autocmd("User", {
+    group = completion_appearance,
+    pattern = "MatugenPaletteChanged",
+    callback = completion_highlights,
+})
+vim.api.nvim_create_autocmd("User", {
+    group = completion_appearance,
+    pattern = "MiniCompletionWindowOpen",
+    callback = function(event)
+        vim.wo[event.data.win_id].winhighlight =
+            "NormalFloat:MiniCompletionMatugenNormal,FloatBorder:MiniCompletionMatugenBorder"
+    end,
 })
 
 local function map_key(key, action, description)
