@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import "app_launcher"
@@ -219,9 +220,6 @@ PanelWindow {
     Rectangle {
         id: appMenu
 
-        readonly property string iconDataHome: Quickshell.env("XDG_DATA_HOME")
-            || Quickshell.env("HOME") + "/.local/share"
-
         anchors.left: workspaceMenu.right
         anchors.leftMargin: 8
         y: 8
@@ -248,39 +246,34 @@ PanelWindow {
                 IslandMenuButton {
                     id: appButton
 
-                    required property int index
                     required property var modelData
-                    width: 36
+                    width: 28
                     height: 36
-                    padding: 5
-                    leftPadding: padding
-                    rightPadding: padding
                     Accessible.name: modelData.label
 
-                    background: Item {
-                        Rectangle {
-                            anchors.left: parent.left
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 1
-                            height: 14
-                            color: Monochrome.outline
-                            visible: appButton.index > 0
-                        }
+                    background: Rectangle {
+                        x: 1
+                        y: 5
+                        width: appButton.width - 2
+                        height: appButton.height - 10
+                        radius: 8
+                        color: appButton.pointerHovered || appButton.activeFocus
+                            ? Qt.alpha(Monochrome.accent, 0.14) : "transparent"
                     }
 
-                    contentItem: Image {
-                        source: "file://" + appMenu.iconDataHome + "/icons/Tela-circle-dark/scalable/apps/"
-                            + modelData.icon + ".svg"
-                        fillMode: Image.PreserveAspectFit
-                        sourceSize.width: 44
-                        sourceSize.height: 44
-                        scale: appButton.pointerHovered ? 1.25 : 1
+                    contentItem: Item {}
 
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: 160
-                                easing.type: Easing.OutCubic
-                            }
+                    Image {
+                        anchors.centerIn: parent
+                        width: 20
+                        height: 20
+                        source: "island/icons/" + appButton.modelData.icon + ".svg"
+                        sourceSize: Qt.size(width * Screen.devicePixelRatio, height * Screen.devicePixelRatio)
+                        layer.enabled: true
+                        layer.effect: MultiEffect {
+                            autoPaddingEnabled: false
+                            colorization: 1
+                            colorizationColor: Monochrome.accent
                         }
                     }
 
