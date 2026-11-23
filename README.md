@@ -1,24 +1,24 @@
 # Sabari’s dotfiles
 
-A monochrome Arch Linux desktop with Hyprland, a custom Quickshell shell, and a terminal-based workflow.
+A monochrome Arch Linux desktop with Hyprland, Quickshell, Kitty, tmux, and Neovim.
 
-![Hyprland desktop](assets/desktop.png)
+![Hyprland desktop with the Quickshell island](assets/desktop.png)
 
-## Desktop showcase
+## Quickshell
 
-[![Quickshell desktop showcase video](https://i.ytimg.com/vi/RfIYW371o9A/hqdefault.jpg)](https://youtu.be/RfIYW371o9A)
+![Animated preview of the Quickshell island](assets/island_croped.gif)
 
-[Watch on YouTube](https://youtu.be/RfIYW371o9A)
+[Watch the desktop tour on YouTube](https://youtu.be/RfIYW371o9A)
 
-The Quickshell island brings together workspaces, an app launcher, clipboard history, a dashboard, notifications, connectivity controls, and a wallpaper picker.
+| App launcher | Wallpaper picker |
+| :---: | :---: |
+| ![Quickshell app launcher](assets/app_launcher.png) | ![Quickshell wallpaper picker](assets/wallpaper_picker.png) |
 
-![Neovim and tmux](assets/nvim.png)
+## Terminal
 
-![Quickshell island](assets/island_croped.gif)
-
-[App launcher](assets/app_launcher.png) · [Wallpaper picker](assets/wallpaper_picker.png) · [Terminal tools](assets/tools.png)
-
-Neovim and tmux share a transparent, monochrome setup.
+| Neovim and tmux | Terminal tools |
+| :---: | :---: |
+| ![Neovim and tmux](assets/nvim.png) | ![Terminal tools in Kitty](assets/tools.png) |
 
 ## The setup
 
