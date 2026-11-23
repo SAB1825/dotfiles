@@ -1,0 +1,55 @@
+add_newline = true
+palette = 'mint'
+format = """
+[╭─](frame) $directory$git_branch$git_status$python$nodejs$golang$rust$cmd_duration
+[╰─](frame)$character"""
+
+[palettes.mint]
+frame = '{{colors.outline.default.hex}}'
+mint = '{{colors.primary.default.hex}}'
+blue = '{{colors.secondary.default.hex}}'
+amber = '{{colors.tertiary.default.hex}}'
+rose = '{{colors.error.default.hex}}'
+
+[directory]
+truncation_length = 3
+truncation_symbol = '…/'
+style = 'bold mint'
+format = '[󰉋  $path]($style)[$read_only]($read_only_style) '
+
+[git_branch]
+symbol = ' '
+style = 'blue'
+format = '[$symbol$branch]($style) '
+
+[git_status]
+style = 'amber'
+format = '([$all_status$ahead_behind]($style) )'
+
+[python]
+symbol = ' '
+style = 'blue'
+format = '[$symbol$version( $virtualenv)]($style) '
+
+[nodejs]
+symbol = ' '
+style = 'blue'
+format = '[$symbol$version]($style) '
+
+[golang]
+symbol = ' '
+style = 'blue'
+format = '[$symbol$version]($style) '
+
+[rust]
+symbol = ' '
+style = 'blue'
+format = '[$symbol$version]($style) '
+
+[cmd_duration]
+min_time = 2000
+format = '[󱎫  $duration](amber) '
+
+[character]
+success_symbol = '[❯](bold mint)'
+error_symbol = '[❯](bold rose)'

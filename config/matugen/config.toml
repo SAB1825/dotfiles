@@ -1,0 +1,34 @@
+[config]
+
+[templates.gtk3]
+input_path = 'templates/gtk3.css'
+output_path = 'generated/gtk-3.0/gtk.css'
+
+[templates.gtk4]
+input_path = 'templates/gtk4.css'
+output_path = 'generated/gtk-4.0/gtk.css'
+
+[templates.qt]
+input_path = 'templates/qt.conf'
+output_path = 'generated/qt/matugen.conf'
+
+[templates.brave]
+input_path = 'templates/brave.json'
+output_path = 'generated/brave/manifest.json'
+post_hook = 'rm -f -- "${XDG_CONFIG_HOME:-$HOME/.config}/matugen/generated/brave/Cached Theme.pak" && magick -size 640x360 "xc:{{colors.surface_container.default.hex}}" "${XDG_CONFIG_HOME:-$HOME/.config}/matugen/generated/brave-new-tab.png"'
+
+[templates.starship]
+input_path = 'templates/starship.toml'
+output_path = 'generated/starship.toml'
+
+[templates.fastfetch]
+input_path = 'templates/fastfetch.jsonc'
+output_path = 'generated/fastfetch.jsonc'
+
+[templates.nautilus_folder]
+input_path = 'templates/folder.svg'
+output_path = 'generated/icons/Matugen-Folders/scalable/places/folder.svg'
+
+[templates.nvim]
+input_path = 'templates/nvim.json'
+output_path = 'generated/nvim.json'

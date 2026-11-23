@@ -1,0 +1,8 @@
+[Unit]
+Description=Watch the Quickshell wallpaper selection
+
+[Path]
+PathChanged=%f
+
+[Install]
+WantedBy=default.target

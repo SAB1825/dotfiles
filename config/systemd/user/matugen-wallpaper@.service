@@ -1,0 +1,6 @@
+[Unit]
+Description=Generate desktop colors from the Quickshell wallpaper
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 "%E/matugen/generate-wallpaper.py" "%f"
