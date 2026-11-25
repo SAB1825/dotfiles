@@ -20,115 +20,41 @@ Item {
         color: Monochrome.background
     }
 
-    Item {
-        id: backdrop
+    Image {
         anchors.fill: parent
         z: -2
+        source: root.wallpaperPath
+            ? "file://" + root.wallpaperPath.split("/").map(encodeURIComponent).join("/") : ""
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+    }
 
-        Image {
-            id: wallpaper
-            anchors.fill: parent
-            source: root.wallpaperPath
-                ? "file://" + root.wallpaperPath.split("/").map(encodeURIComponent).join("/") : ""
-            fillMode: Image.PreserveAspectCrop
-            asynchronous: true
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            color: Qt.alpha(Monochrome.background, 0.28)
-        }
+    Rectangle {
+        anchors.fill: parent
+        z: -1
+        color: Qt.alpha(Monochrome.background, 0.16)
     }
 
     Text {
-        id: clock
         anchors.centerIn: parent
+        anchors.verticalCenterOffset: -Math.round(root.height * 0.06)
         text: Time.hours + ":" + Time.minutes
-        color: Monochrome.accent
-        visible: !glass.visible
+        color: "#f7f8fc"
         renderType: Text.CurveRendering
-        font.family: Typography.family
-        font.weight: Typography.weight
+        font.family: "sans-serif"
+        font.weight: Font.DemiBold
         font.pixelSize: root.clockSize
-        font.letterSpacing: -root.clockSize * 0.05
+        font.letterSpacing: -root.clockSize * 0.035
         leftPadding: Math.ceil(root.clockSize * 0.07)
         rightPadding: leftPadding
-    }
 
-    // Sample the visible wallpaper for the frost inside the clock glyphs.
-    ShaderEffectSource {
-        id: clockBackdrop
-        sourceItem: backdrop
-        sourceRect: Qt.rect(clock.x, clock.y, clock.width, clock.height)
-        width: clock.width
-        height: clock.height
-        visible: false
-        live: glass.visible
-    }
-
-    Text {
-        id: maskText
-        anchors.fill: clock
-        text: clock.text
-        font: clock.font
-        leftPadding: clock.leftPadding
-        rightPadding: clock.rightPadding
-        color: "white"
-        renderType: clock.renderType
-        visible: glass.visible
-    }
-
-    ShaderEffectSource {
-        id: clockMask
-        sourceItem: maskText
-        // Supersample the glyph mask to retain coverage along the curves.
-        textureSize: Qt.size(Math.ceil(maskText.width * Screen.devicePixelRatio * 2),
-            Math.ceil(maskText.height * Screen.devicePixelRatio * 2))
-        smooth: true
-        hideSource: true
-        visible: false
-    }
-
-    Item {
-        id: frostedFill
-        anchors.fill: clock
-        visible: glass.visible
-
-        MultiEffect {
-            anchors.fill: parent
-            source: clockBackdrop
-            autoPaddingEnabled: false
-            blurEnabled: true
-            blurMax: 48
-            blur: 0.8
-            brightness: 0.36
-            saturation: -1
+        layer.enabled: GraphicsInfo.api !== GraphicsInfo.Software
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: "#c0000000"
+            shadowBlur: 0.65
+            shadowVerticalOffset: Math.max(2, root.clockSize * 0.025)
         }
-
-        Rectangle {
-            anchors.fill: parent
-            color: Qt.alpha(Monochrome.accent, 0.75)
-        }
-    }
-
-    ShaderEffectSource {
-        id: glassFill
-        sourceItem: frostedFill
-        hideSource: true
-        visible: false
-    }
-
-    MultiEffect {
-        id: glass
-        anchors.fill: clock
-        z: -1
-        visible: wallpaper.status === Image.Ready && clock.width > 0 && clock.height > 0
-        source: glassFill
-        autoPaddingEnabled: false
-        maskEnabled: true
-        maskSource: clockMask
-        maskThresholdMin: 0.5
-        maskSpreadAtMin: 0.5
     }
 
     Rectangle {
